@@ -55,12 +55,11 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
     setInputText('');
     setLoading(true);
 
-    // Update active thread locally
     let updatedThreads = [...threads];
     if (activeThread.id === 'new') {
       const newThread = {
         id: `thread_${Date.now()}`,
-        title: text.length > 25 ? text.substring(0, 25) + '...' : text,
+        title: text.length > 22 ? text.substring(0, 22) + '...' : text,
         messages: newMessages,
         updatedAt: new Date().toISOString()
       };
@@ -102,7 +101,7 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
       const errorMsg: ChatMessage = {
         id: `err_${Date.now()}`,
         role: 'model',
-        text: `⚠️ Error: ${errMsg}`,
+        text: `⚠️ ${errMsg}`,
         timestamp: new Date().toISOString()
       };
       const finalThreads = updatedThreads.map(t => {
@@ -121,8 +120,6 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
     setActiveThreadId('new');
   };
 
-
-
   return (
     <div style={{
       display: 'flex',
@@ -132,108 +129,109 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
       color: '#fff',
       fontFamily: 'system-ui, -apple-system, sans-serif'
     }}>
-      {/* Top Header */}
+      {/* Top Mobile Header */}
       <div style={{
-        padding: '14px 18px',
+        padding: '12px 16px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: 'rgba(15, 23, 42, 0.85)',
-        backdropFilter: 'blur(16px)'
+        background: 'rgba(10, 15, 30, 0.9)',
+        backdropFilter: 'blur(20px)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
-            width: '36px',
-            height: '36px',
+            width: '34px',
+            height: '34px',
             borderRadius: '50%',
             background: 'linear-gradient(135deg, #0ea5e9, #3b82f6)',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            boxShadow: '0 0 12px rgba(14, 165, 233, 0.4)'
           }}>
-            <Bot size={20} color="#fff" />
+            <Bot size={18} color="#fff" />
           </div>
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 800 }}>LADA Studio Chat</div>
-            <div style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 600 }}>Gemini 2.5 Flash · Deep German AI</div>
+            <div style={{ fontSize: '15px', fontWeight: 800 }}>LADA Chat</div>
+            <div style={{ fontSize: '10px', color: '#38bdf8', fontWeight: 700 }}>Gemini 3.6 Flash · Online</div>
           </div>
         </div>
 
-        {/* Bridge Mode Selector Pill */}
-        <div style={{
-          display: 'flex',
-          background: 'rgba(255, 255, 255, 0.06)',
-          borderRadius: '20px',
-          padding: '2px',
-          border: '1px solid rgba(255, 255, 255, 0.1)'
-        }}>
+        {/* Compact Right Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Language Selector */}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(255, 255, 255, 0.08)',
+            borderRadius: '16px',
+            padding: '2px'
+          }}>
+            <button
+              onClick={() => onChangeBridgeMode('german_only')}
+              style={{
+                padding: '3px 7px',
+                borderRadius: '14px',
+                background: bridgeMode === 'german_only' ? '#0ea5e9' : 'transparent',
+                border: 'none',
+                color: '#fff',
+                fontSize: '10px',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              DE
+            </button>
+            <button
+              onClick={() => onChangeBridgeMode('german_darija')}
+              style={{
+                padding: '3px 7px',
+                borderRadius: '14px',
+                background: bridgeMode === 'german_darija' ? '#0ea5e9' : 'transparent',
+                border: 'none',
+                color: '#fff',
+                fontSize: '10px',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              🇲🇦 MA
+            </button>
+            <button
+              onClick={() => onChangeBridgeMode('german_english')}
+              style={{
+                padding: '3px 7px',
+                borderRadius: '14px',
+                background: bridgeMode === 'german_english' ? '#0ea5e9' : 'transparent',
+                border: 'none',
+                color: '#fff',
+                fontSize: '10px',
+                fontWeight: 800,
+                cursor: 'pointer'
+              }}
+            >
+              EN
+            </button>
+          </div>
+
           <button
-            onClick={() => onChangeBridgeMode('german_only')}
+            onClick={handleNewThread}
             style={{
-              padding: '4px 10px',
-              borderRadius: '16px',
-              background: bridgeMode === 'german_only' ? '#0ea5e9' : 'transparent',
-              border: 'none',
-              color: '#fff',
-              fontSize: '11px',
-              fontWeight: 700,
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'rgba(56, 189, 248, 0.15)',
+              border: '1px solid rgba(56, 189, 248, 0.3)',
+              color: '#38bdf8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               cursor: 'pointer'
             }}
           >
-            🇩🇪 Pur
-          </button>
-          <button
-            onClick={() => onChangeBridgeMode('german_darija')}
-            style={{
-              padding: '4px 10px',
-              borderRadius: '16px',
-              background: bridgeMode === 'german_darija' ? '#0ea5e9' : 'transparent',
-              border: 'none',
-              color: '#fff',
-              fontSize: '11px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            🇲🇦 Darija
-          </button>
-          <button
-            onClick={() => onChangeBridgeMode('german_english')}
-            style={{
-              padding: '4px 10px',
-              borderRadius: '16px',
-              background: bridgeMode === 'german_english' ? '#0ea5e9' : 'transparent',
-              border: 'none',
-              color: '#fff',
-              fontSize: '11px',
-              fontWeight: 700,
-              cursor: 'pointer'
-            }}
-          >
-            🇬🇧 English
+            <Plus size={16} />
           </button>
         </div>
-
-        <button
-          onClick={handleNewThread}
-          style={{
-            background: 'rgba(56, 189, 248, 0.15)',
-            border: '1px solid rgba(56, 189, 248, 0.3)',
-            borderRadius: '10px',
-            color: '#38bdf8',
-            padding: '6px 12px',
-            fontSize: '12px',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          <Plus size={14} />
-          <span>New Chat</span>
-        </button>
       </div>
 
       {/* Messages Scroll Area */}
@@ -243,22 +241,22 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
         padding: '16px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '14px'
+        gap: '12px'
       }}>
         {activeThread.messages.map((msg) => (
           <div
             key={msg.id}
             style={{
               display: 'flex',
-              gap: '10px',
+              gap: '8px',
               alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              maxWidth: '85%'
+              maxWidth: '88%'
             }}
           >
             {msg.role === 'model' && (
               <div style={{
-                width: '28px',
-                height: '28px',
+                width: '26px',
+                height: '26px',
                 borderRadius: '50%',
                 background: '#0ea5e9',
                 display: 'flex',
@@ -267,28 +265,29 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
                 flexShrink: 0,
                 marginTop: '4px'
               }}>
-                <Bot size={16} color="#fff" />
+                <Bot size={14} color="#fff" />
               </div>
             )}
 
             <div style={{
-              background: msg.role === 'user' ? 'linear-gradient(135deg, #0284c7, #2563eb)' : 'rgba(15, 23, 42, 0.75)',
-              border: msg.role === 'user' ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '18px',
-              padding: '12px 16px',
+              background: msg.role === 'user' ? 'linear-gradient(135deg, #0284c7, #2563eb)' : 'rgba(15, 23, 42, 0.85)',
+              border: msg.role === 'user' ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: '16px',
+              padding: '10px 14px',
               color: '#f8fafc',
               fontSize: '14px',
               lineHeight: '1.5',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
-              whiteSpace: 'pre-wrap'
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word'
             }}>
               {msg.role === 'model' ? highlightGermanSyntax(msg.text) : msg.text}
             </div>
 
             {msg.role === 'user' && (
               <div style={{
-                width: '28px',
-                height: '28px',
+                width: '26px',
+                height: '26px',
                 borderRadius: '50%',
                 background: '#334155',
                 display: 'flex',
@@ -297,35 +296,35 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
                 flexShrink: 0,
                 marginTop: '4px'
               }}>
-                <User size={16} color="#94a3b8" />
+                <User size={14} color="#94a3b8" />
               </div>
             )}
           </div>
         ))}
 
         {loading && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '13px', marginLeft: '38px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '13px', marginLeft: '34px' }}>
             <Sparkles size={16} className="animate-spin" color="#38bdf8" />
-            <span>LADA is thinking...</span>
+            <span>LADA is typing...</span>
           </div>
         )}
 
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Quick Prompt Suggestions */}
+      {/* Quick Prompt Chips */}
       <div style={{
-        padding: '8px 16px',
+        padding: '6px 14px',
         display: 'flex',
-        gap: '8px',
+        gap: '6px',
         overflowX: 'auto',
-        background: 'rgba(15, 23, 42, 0.4)'
+        background: 'rgba(10, 15, 30, 0.6)'
       }}>
         {[
           'Wie sagt man das auf Deutsch?',
           'Deconstruct a compound word',
           'Explain der/die/das rule',
-          'Translate with Darija notes'
+          'Translate to Darija & German'
         ].map((promptText) => (
           <button
             key={promptText}
@@ -335,8 +334,8 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
               border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '12px',
               color: '#cbd5e1',
-              padding: '6px 12px',
-              fontSize: '12px',
+              padding: '5px 10px',
+              fontSize: '11px',
               whiteSpace: 'nowrap',
               cursor: 'pointer'
             }}
@@ -348,35 +347,36 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
 
       {/* Input Deck */}
       <div style={{
-        padding: '12px 16px',
+        padding: '10px 14px',
         borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-        background: 'rgba(15, 23, 42, 0.9)',
+        background: 'rgba(10, 15, 30, 0.95)',
         display: 'flex',
-        gap: '10px',
+        gap: '8px',
         alignItems: 'center'
       }}>
         <input
           type="text"
-          placeholder="Ask LADA anything about German..."
+          placeholder="Message LADA in German, Darija, or English..."
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') handleSend(); }}
           style={{
             flex: 1,
-            padding: '12px 16px',
-            borderRadius: '24px',
+            padding: '10px 16px',
+            borderRadius: '22px',
             background: 'rgba(255, 255, 255, 0.06)',
             border: '1px solid rgba(255, 255, 255, 0.12)',
             color: '#fff',
-            fontSize: '14px'
+            fontSize: '14px',
+            outline: 'none'
           }}
         />
         <button
           onClick={() => handleSend()}
           disabled={!inputText.trim() || loading}
           style={{
-            width: '44px',
-            height: '44px',
+            width: '40px',
+            height: '40px',
             borderRadius: '50%',
             background: inputText.trim() ? 'linear-gradient(135deg, #0ea5e9, #2563eb)' : 'rgba(255, 255, 255, 0.08)',
             border: 'none',
@@ -385,10 +385,10 @@ export const TextChatStudio: React.FC<TextChatStudioProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             cursor: inputText.trim() ? 'pointer' : 'default',
-            boxShadow: inputText.trim() ? '0 4px 14px rgba(14, 165, 233, 0.4)' : 'none'
+            boxShadow: inputText.trim() ? '0 0 12px rgba(14, 165, 233, 0.4)' : 'none'
           }}
         >
-          <Send size={18} />
+          <Send size={16} />
         </button>
       </div>
     </div>
