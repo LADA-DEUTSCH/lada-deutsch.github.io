@@ -1,0 +1,82 @@
+{
+  "session_id": "S20260827_180254",
+  "timestamp": "2026-08-27T17:08:16.940441+00:00",
+  "turns_count": 15,
+  "transcript": [
+    {
+      "role": "model",
+      "text": "Hey, welcome back! I'm your German language companion, and I'm so excited to continue our journey together.\n\nBefore we dive in, do you remember what we call a table in German? Or how about a glass? Let's see what stuck!",
+      "time": "2026-08-27T17:03:09.756657+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Spot on! And what about the other one I mentioned, \"das Glas\"? Any ideas?",
+      "time": "2026-08-27T17:03:22.639506+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Exactly! You're doing great. Now, I see your laptop keyboard there. The German word for keyboard is \"die Tastatur.\" Can you try saying that? \"Die Tastatur.\"",
+      "time": "2026-08-27T17:03:39.323687+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Perfect pronunciation! And I also see your mouse pad. Remember that the German word for mouse is \"die Maus\"? So, fittingly, mouse pad is \"das Mauspad.\" Almost the same! Now, since we've practiced some nouns, let's try using one in a sentence. Can you point to your mouse pad and say, \"Ich sehe das Mauspad\"? That means \"I see the mouse pad.\"",
+      "time": "2026-08-27T17:04:06.194633+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Excellent! That's nearly perfect. Just add the little word \"das\" before \"Mauspad\": \"Ich sehe das Mauspad.\" Wanna try it one more time?",
+      "time": "2026-08-27T17:04:26.744601+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Wunderschön! Perfect! You've got that down. Now, if you look down at your desk, you could say, \"Der Tisch ist unter dem Mauspad.\" Remember \"Tisch\"? \"Der Tisch...\" That means \"The table.\" Can you try that one?",
+      "time": "2026-08-27T17:04:45.460891+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, good question! \"Der Tisch ist unter dem Mauspad\" means \"The table is under the mouse pad.\" So, we're saying where the table is in relation to the mouse pad. Makes sense? You wanna try saying it again now that you know what it means?",
+      "time": "2026-08-27T17:05:08.879360+00:00"
+    },
+    {
+      "role": "model",
+      "text": "That's a very observant question! It's because of the word \"unter,\" which means \"under.\" When you're talking about something being in a static position under something else, the little word \"das\" changes to \"dem.\" We call this the dative case, but don't worry too much about the name right now. Does that make a little more sense?",
+      "time": "2026-08-27T17:05:33.708203+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Great! Now, let's try something different. You know the word for hand is \"die Hand.\" Can you say \"Meine Hand ist auf dem Mauspad\"? That means \"My hand is on the mouse pad.\" What do you think about that one?",
+      "time": "2026-08-27T17:05:53.984591+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Exactly, you got that part! So, just the beginning of that sentence was \"Meine Hand ist...\" (\"My hand is...\"). Wanna try the whole thing together? \"Meine Hand ist auf dem Mauspad.\"",
+      "time": "2026-08-27T17:06:09.539910+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Oh, right! I missed that. \"Meine Hand ist auf dem Mauspad\" means \"My hand is on the mouse pad.\" So, you're describing what your hand is doing right now. Does that make sense? Wanna try it now?",
+      "time": "2026-08-27T17:06:26.179915+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Actually, \"dem\" is used for both! It just depends on the word you're using. \"Auf\" means \"on,\" and \"unter\" means \"under.\" And both cause the word \"das\" to change to \"dem\" in this kind of sentence, pointing to its position. Does that make sense? So, with \"on,\" we say \"auf dem,\" and with \"under,\" we'd say \"unter dem.\" Are you with me?",
+      "time": "2026-08-27T17:06:52.288247+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Sure thing! I was just saying that \"dem\" is used for both \"on\" and \"under\" in this kind of situation. \"Auf\" means \"on,\" and \"unter\" means \"under.\" And because of that, the word \"das\" becomes \"dem\" for both. Does that make sense now? You want to try saying the sentence again, maybe focused on the meaning?",
+      "time": "2026-08-27T17:07:17.516150+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Okay, I will. \"Auf\" means \"on.\" \"Unter\" means \"under.\" They both cause \"das\" to become \"dem.\" Clearer now? Do you want to try the sentence again slowly?",
+      "time": "2026-08-27T17:07:33.304639+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Yes, perfect! You explained it exactly right. So, now that you understand that, do you want to say the sentence again? \"Meine Hand ist auf dem Mauspad.\" You've got the structure down now.",
+      "time": "2026-08-27T17:08:08.999544+00:00"
+    }
+  ]
+}

@@ -1,0 +1,550 @@
+{
+  "learner_id": "bilal",
+  "created_at": "2026-08-27T00:00:00Z",
+  "last_session_at": "2026-09-03T21:33:21.818912+00:00",
+  "total_sessions": 15,
+  "current_frontier": {
+    "primary": "spatial_case_contrast",
+    "secondary": "article_automaticity"
+  },
+  "skills": {
+    "gender_suffix_prediction": {
+      "level": "developing",
+      "confidence": 0.85,
+      "attempts": 10,
+      "correct": 9
+    },
+    "article_automaticity": {
+      "level": "developing",
+      "confidence": 0.72,
+      "der_accuracy": 0.78,
+      "die_accuracy": 0.88,
+      "das_accuracy": 0.65,
+      "attempts": 20,
+      "correct": 15
+    },
+    "spatial_case_contrast": {
+      "level": "developing",
+      "confidence": 0.86,
+      "attempts": 7,
+      "correct": 6,
+      "akkusativ_accuracy": 1.0,
+      "dativ_accuracy": 0.75
+    },
+    "verb_pairing_movement_static": {
+      "level": "unseen",
+      "confidence": 0.0,
+      "attempts": 0,
+      "correct": 0
+    },
+    "v2_word_order": {
+      "level": "unseen",
+      "confidence": 0.0,
+      "attempts": 0,
+      "correct": 0
+    },
+    "sentence_lengthener_templates": {
+      "level": "developing",
+      "confidence": 1.0,
+      "attempts": 1,
+      "correct": 1
+    },
+    "spoken_contractions": {
+      "level": "developing",
+      "confidence": 1.0,
+      "attempts": 1,
+      "correct": 1,
+      "dativ_accuracy": 1.0
+    }
+  },
+  "vocabulary": {
+    "tisch": {
+      "lemma": "Tisch",
+      "article": "der",
+      "plural": "die Tische",
+      "state": "practicing",
+      "attempts": 1,
+      "correct": 1,
+      "consecutive_correct": 1,
+      "last_latency_ms": 1100,
+      "last_practiced": "2026-09-03T21:33:21.819920+00:00",
+      "translation": "table",
+      "part_of_speech": "noun",
+      "repetitions": 1,
+      "interval_days": 1,
+      "next_review_at": "2026-09-04T21:33:21.819920+00:00"
+    },
+    "glas": {
+      "lemma": "Glas",
+      "article": "das",
+      "plural": "die Gläser",
+      "state": "recalled",
+      "attempts": 4,
+      "correct": 3,
+      "consecutive_correct": 3,
+      "last_latency_ms": 502,
+      "last_practiced": "2026-08-27T00:40:38.457486+00:00"
+    },
+    "umlaut": {
+      "lemma": "Umlaut",
+      "article": "der",
+      "part_of_speech": "noun",
+      "translation": "umlaut",
+      "repetitions": 1,
+      "interval_days": 1,
+      "state": "practicing",
+      "last_practiced": "2026-09-03T21:33:21.819920+00:00",
+      "next_review_at": "2026-09-04T21:33:21.819920+00:00"
+    }
+  },
+  "error_patterns": [
+    {
+      "id": "ERR_GLAS_GENDER",
+      "pattern": "ERR_GLAS_GENDER",
+      "frequency": "low",
+      "count": 1,
+      "last_observed": "2026-08-26T20:02:15Z"
+    },
+    {
+      "id": "ERR_DATIVE_STATIC_CASE",
+      "pattern": "ERR_DATIVE_STATIC_CASE",
+      "frequency": "low",
+      "count": 1,
+      "last_observed": "2026-08-26T20:08:45Z"
+    },
+    {
+      "id": "ERR_3",
+      "details": "Finding a quiet, free place to study in Casablanca.",
+      "source_session": "S20260903_222958",
+      "last_observed": "2026-09-03T21:33:21.818912+00:00"
+    },
+    {
+      "id": "ERR_4",
+      "details": "Practicing German alphabet pronunciation and understanding Umlaute.",
+      "source_session": "S20260903_222958",
+      "last_observed": "2026-09-03T21:33:21.818912+00:00"
+    }
+  ],
+  "review_queue": [],
+  "curiosity_queue": [
+    "Konjunktiv II",
+    "Relative clauses in spoken German"
+  ],
+  "personal_facts": [
+    {
+      "id": "fact_1",
+      "fact": "Has a bottle of water in their room",
+      "source_session": "S20260827_164020",
+      "created_at": "2026-08-27T15:43:37.329046+00:00"
+    },
+    {
+      "id": "fact_2",
+      "fact": "Has a chair in their room",
+      "source_session": "S20260827_164020",
+      "created_at": "2026-08-27T15:43:37.329046+00:00"
+    },
+    {
+      "id": "fact_3",
+      "fact": "Has a sofa in their room",
+      "source_session": "S20260827_164020",
+      "created_at": "2026-08-27T15:43:37.329046+00:00"
+    },
+    {
+      "id": "fact_4",
+      "fact": "Has a cushion or pillow in their room",
+      "source_session": "S20260827_164020",
+      "created_at": "2026-08-27T15:43:37.329046+00:00"
+    },
+    {
+      "id": "fact_5",
+      "fact": "Is using a camera feed to interact and show objects to the companion",
+      "source_session": "S20260827_164020",
+      "created_at": "2026-08-27T15:43:37.329046+00:00"
+    },
+    {
+      "id": "fact_6",
+      "fact": "The user has a computer mouse and a mousepad in their immediate environment.",
+      "source_session": "S20260827_165020",
+      "created_at": "2026-08-27T15:51:09.643262+00:00"
+    },
+    {
+      "id": "fact_7",
+      "fact": "The user has a computer mouse with pinkish lights.",
+      "source_session": "S20260827_171001",
+      "created_at": "2026-08-27T16:12:21.786989+00:00"
+    },
+    {
+      "id": "fact_8",
+      "fact": "The user has a mouse pad with an orange and black design.",
+      "source_session": "S20260827_171001",
+      "created_at": "2026-08-27T16:12:21.786989+00:00"
+    },
+    {
+      "id": "fact_9",
+      "fact": "The user is a returning learner practicing German.",
+      "source_session": "S20260827_180113",
+      "created_at": "2026-08-27T17:05:24.229472+00:00"
+    },
+    {
+      "id": "fact_10",
+      "fact": "Has a laptop, keyboard, and mouse pad on their desk.",
+      "source_session": "S20260827_180254",
+      "created_at": "2026-08-27T17:08:16.940441+00:00"
+    },
+    {
+      "id": "fact_11",
+      "fact": "The user's name is Mycha",
+      "source_session": "S20260827_181305",
+      "created_at": "2026-08-27T17:18:12.326637+00:00"
+    },
+    {
+      "id": "fact_12",
+      "fact": "The user has a laptop on their desk",
+      "source_session": "S20260827_181305",
+      "created_at": "2026-08-27T17:18:12.326637+00:00"
+    },
+    {
+      "id": "fact_13",
+      "fact": "The user has a mousepad on their desk",
+      "source_session": "S20260827_181305",
+      "created_at": "2026-08-27T17:18:12.326637+00:00"
+    },
+    {
+      "id": "fact_14",
+      "fact": "The user has a patterned object, possibly a mousepad, behind them in their room.",
+      "source_session": "S20260827_204738",
+      "created_at": "2026-08-27T19:48:29.159485+00:00"
+    },
+    {
+      "id": "fact_15",
+      "fact": "Has a colorful keyboard",
+      "source_session": "S20260827_220350",
+      "created_at": "2026-08-27T21:13:47.079046+00:00"
+    },
+    {
+      "id": "fact_16",
+      "fact": "Has a laptop, monitor, mouse, and mousepad on their desk",
+      "source_session": "S20260827_220350",
+      "created_at": "2026-08-27T21:13:47.079046+00:00"
+    },
+    {
+      "id": "fact_17",
+      "fact": "Prefers learning with simple, practical sentences",
+      "source_session": "S20260827_220350",
+      "created_at": "2026-08-27T21:13:47.079046+00:00"
+    },
+    {
+      "id": "fact_18",
+      "fact": "Speaks Moroccan Darija",
+      "source_session": "S20260827_220350",
+      "created_at": "2026-08-27T21:13:47.079046+00:00"
+    },
+    {
+      "id": "fact_19",
+      "fact": "The user has a traditional Moroccan teapot (berrad d'atay) and drinks tea from it.",
+      "source_session": "S20260827_231733",
+      "created_at": "2026-08-27T22:20:18.859530+00:00"
+    },
+    {
+      "id": "fact_20",
+      "fact": "The user has a TV, a table, a phone, and a toothbrush in their immediate environment.",
+      "source_session": "S20260827_231733",
+      "created_at": "2026-08-27T22:20:18.859530+00:00"
+    },
+    {
+      "id": "fact_21",
+      "fact": "The user previously learned the German words for table (Tisch), glass (Glas), and bottle (Flasche).",
+      "source_session": "S20260827_231733",
+      "created_at": "2026-08-27T22:20:18.859530+00:00"
+    },
+    {
+      "id": "fact_22",
+      "fact": "Has a colorful keyboard with lights on their desk",
+      "source_session": "S20260902_193908",
+      "created_at": "2026-09-02T18:45:00.997044+00:00"
+    },
+    {
+      "id": "fact_23",
+      "fact": "Has an orange and black mousepad",
+      "source_session": "S20260902_193908",
+      "created_at": "2026-09-02T18:45:00.997044+00:00"
+    },
+    {
+      "id": "fact_24",
+      "fact": "Has a big black monitor",
+      "source_session": "S20260902_193908",
+      "created_at": "2026-09-02T18:45:00.997044+00:00"
+    },
+    {
+      "id": "fact_25",
+      "fact": "Has a rug and a sofa in their room",
+      "source_session": "S20260902_193908",
+      "created_at": "2026-09-02T18:45:00.997044+00:00"
+    },
+    {
+      "id": "fact_26",
+      "fact": "His name is Bilal.",
+      "source_session": "S20260903_001217",
+      "created_at": "2026-09-02T23:22:35.929542+00:00"
+    },
+    {
+      "id": "fact_27",
+      "fact": "He has a rug in his room which was discussed in a previous session.",
+      "source_session": "S20260903_001217",
+      "created_at": "2026-09-02T23:22:35.929542+00:00"
+    },
+    {
+      "id": "fact_28",
+      "fact": "He has a keyboard with purple and blue lights on his desk.",
+      "source_session": "S20260903_001217",
+      "created_at": "2026-09-02T23:22:35.929542+00:00"
+    },
+    {
+      "id": "fact_29",
+      "fact": "He wanted to choose a German name or title for his AI companion, looking for something short, masculine, and strong (like 'savior', 'protector', or 'rock').",
+      "source_session": "S20260903_001217",
+      "created_at": "2026-09-02T23:22:35.929542+00:00"
+    },
+    {
+      "id": "fact_30",
+      "fact": "He has a big blue rug on his floor.",
+      "source_session": "S20260903_002225",
+      "created_at": "2026-09-02T23:28:05.609740+00:00"
+    },
+    {
+      "id": "fact_31",
+      "fact": "He has a colorful keyboard and a computer mouse on his desk.",
+      "source_session": "S20260903_002225",
+      "created_at": "2026-09-02T23:28:05.609740+00:00"
+    },
+    {
+      "id": "fact_32",
+      "fact": "He has a Moroccan teapot and a TV in his room.",
+      "source_session": "S20260903_002225",
+      "created_at": "2026-09-02T23:28:05.609740+00:00"
+    },
+    {
+      "id": "fact_33",
+      "fact": "He was looking for a 'friendly' name for something, mentioning the word 'Crimpy'.",
+      "source_session": "S20260903_002225",
+      "created_at": "2026-09-02T23:28:05.609740+00:00"
+    },
+    {
+      "id": "fact_34",
+      "fact": "The user's name is Bilal.",
+      "source_session": "S20260903_011237",
+      "created_at": "2026-09-03T00:13:18.875348+00:00"
+    },
+    {
+      "id": "fact_35",
+      "fact": "The user is awake late at night at his desk.",
+      "source_session": "S20260903_011237",
+      "created_at": "2026-09-03T00:13:18.875348+00:00"
+    },
+    {
+      "id": "fact_36",
+      "fact": "The user has a computer mouse with a glowing light effect.",
+      "source_session": "S20260903_011237",
+      "created_at": "2026-09-03T00:13:18.875348+00:00"
+    },
+    {
+      "id": "fact_37",
+      "fact": "The user is chilling in bed late at night.",
+      "source_session": "S20260903_013954",
+      "created_at": "2026-09-03T00:40:26.562106+00:00"
+    },
+    {
+      "id": "fact_38",
+      "fact": "The user has a cushion behind him in bed.",
+      "source_session": "S20260903_013954",
+      "created_at": "2026-09-03T00:40:26.562106+00:00"
+    },
+    {
+      "id": "fact_39",
+      "fact": "He lives in Casablanca (Casa).",
+      "source_session": "S20260903_222958",
+      "created_at": "2026-09-03T21:33:21.818912+00:00"
+    },
+    {
+      "id": "fact_40",
+      "fact": "He is looking for free study spots in Casablanca because cafes are too expensive.",
+      "source_session": "S20260903_222958",
+      "created_at": "2026-09-03T21:33:21.818912+00:00"
+    },
+    {
+      "id": "fact_41",
+      "fact": "He studies late at night in his room.",
+      "source_session": "S20260903_222958",
+      "created_at": "2026-09-03T21:33:21.818912+00:00"
+    },
+    {
+      "id": "fact_42",
+      "fact": "He has a wooden table in his room.",
+      "source_session": "S20260903_222958",
+      "created_at": "2026-09-03T21:33:21.818912+00:00"
+    },
+    {
+      "id": "fact_43",
+      "fact": "He uses a notebook with handwritten German alphabet notes, pronunciation guides, and a box for Umlaute.",
+      "source_session": "S20260903_222958",
+      "created_at": "2026-09-03T21:33:21.818912+00:00"
+    }
+  ],
+  "phrases": {
+    "eine_flasche_wasser": {
+      "german": "eine Flasche Wasser",
+      "english": "a bottle of water",
+      "last_seen_session": "S20260827_164020",
+      "last_practiced": "2026-08-27T15:43:37.329046+00:00"
+    },
+    "ich_sehe_das_mauspad.": {
+      "german": "Ich sehe das Mauspad.",
+      "english": "I see the mouse pad.",
+      "last_seen_session": "S20260827_180254",
+      "last_practiced": "2026-08-27T17:08:16.940441+00:00"
+    },
+    "der_tisch_ist_unter_dem_mauspa": {
+      "german": "Der Tisch ist unter dem Mauspad.",
+      "english": "The table is under the mouse pad.",
+      "last_seen_session": "S20260827_180254",
+      "last_practiced": "2026-08-27T17:08:16.940441+00:00"
+    },
+    "meine_hand_ist_auf_dem_mauspad": {
+      "german": "Meine Hand ist auf dem Mauspad.",
+      "english": "My hand is on the mouse pad.",
+      "last_seen_session": "S20260827_180254",
+      "last_practiced": "2026-08-27T17:08:16.940441+00:00"
+    },
+    "die_tasse_ist_voll": {
+      "german": "die Tasse ist voll",
+      "english": "the cup is full",
+      "last_seen_session": "S20260827_181305",
+      "last_practiced": "2026-08-27T17:18:12.326637+00:00"
+    },
+    "die_tasse_ist_leer": {
+      "german": "die Tasse ist leer",
+      "english": "the cup is empty",
+      "last_seen_session": "S20260827_181305",
+      "last_practiced": "2026-08-27T17:18:12.326637+00:00"
+    },
+    "das_glas_ist_leer": {
+      "german": "das Glas ist leer",
+      "english": "the glass is empty",
+      "last_seen_session": "S20260827_181305",
+      "last_practiced": "2026-08-27T17:18:12.326637+00:00"
+    },
+    "die_maus_ist_auf_dem_tisch.": {
+      "german": "Die Maus ist auf dem Tisch.",
+      "english": "The mouse is on the table.",
+      "last_seen_session": "S20260827_220350",
+      "last_practiced": "2026-08-27T21:13:47.079046+00:00"
+    },
+    "was_ist_das?": {
+      "german": "Was ist das?",
+      "english": "What is this?",
+      "last_seen_session": "S20260827_220350",
+      "last_practiced": "2026-08-27T21:13:47.079046+00:00"
+    },
+    "das_ist...": {
+      "german": "Das ist...",
+      "english": "This is...",
+      "last_seen_session": "S20260827_220350",
+      "last_practiced": "2026-08-27T21:13:47.079046+00:00"
+    },
+    "was_gibt_es?": {
+      "german": "Was gibt es?",
+      "english": "What's up? / What's going on?",
+      "last_seen_session": "S20260903_001217",
+      "last_practiced": "2026-09-02T23:22:35.929542+00:00"
+    },
+    "genau": {
+      "german": "Genau",
+      "english": "Exactly / Precisely",
+      "last_seen_session": "S20260903_001217",
+      "last_practiced": "2026-09-02T23:22:35.929542+00:00"
+    },
+    "willst_du_es_aussprechen?": {
+      "german": "Willst du es aussprechen?",
+      "english": "Do you want to pronounce it?",
+      "last_seen_session": "S20260903_002225",
+      "last_practiced": "2026-09-02T23:28:05.609740+00:00"
+    }
+  },
+  "session_history": [
+    {
+      "session_id": "S20260827_164020",
+      "timestamp": "2026-08-27T15:43:37.329046+00:00",
+      "summary": "The user used their camera to point out household objects, learning the German words for a water bottle, chair, sofa, and cushion. The vibe was highly interactive and visual, though the user exhibited a habit of echoing the AI's spoken English phrases."
+    },
+    {
+      "session_id": "S20260827_165020",
+      "timestamp": "2026-08-27T15:51:09.643262+00:00",
+      "summary": "The companion identified the user's hand, a mouse, and a mousepad on camera. The German nouns 'die Hand' and 'die Maus' were introduced, but the user preferred not to practice repeating them. The interaction remained friendly and low-pressure."
+    },
+    {
+      "session_id": "S20260827_171001",
+      "timestamp": "2026-08-27T16:12:21.786989+00:00",
+      "summary": "The session focused on introducing basic German vocabulary based on objects visible on the user's camera, specifically a computer mouse and its mouse pad. The conversational vibe was highly encouraging, friendly, and supportive as the user practiced pronunciation. The user successfully repeated the German words for hello, colors, mouse, and mouse pad."
+    },
+    {
+      "session_id": "S20260827_180113",
+      "timestamp": "2026-08-27T17:05:24.229472+00:00",
+      "summary": "The session began with a warm welcome and an attempt to review the German word for 'table'. The user experienced brief camera connectivity issues, which resolved quickly. No active verbal responses from the user were recorded in this segment."
+    },
+    {
+      "session_id": "S20260827_180254",
+      "timestamp": "2026-08-27T17:08:16.940441+00:00",
+      "summary": "The session focused on identifying desk objects like 'die Tastatur' and 'das Mauspad' visible on the user's camera. The user practiced forming locational sentences, which led to an in-depth explanation of how two-way prepositions ('auf' and 'unter') trigger the dative case ('dem'). The conversation was highly interactive, with the user asking targeted questions to clarify German grammar rules."
+    },
+    {
+      "session_id": "S20260827_181305",
+      "timestamp": "2026-08-27T17:18:12.326637+00:00",
+      "summary": "The session focused on identifying objects on the user's desk, including their laptop, mousepad, and a discussion on 'der Teppich' (rug). The user also learned vocabulary for cups and glasses ('die Tasse', 'das Glas') and how to describe them as full ('voll') or empty ('leer'). The vibe was encouraging and interactive, utilizing some Moroccan Darija to praise the user's progress."
+    },
+    {
+      "session_id": "S20260827_204738",
+      "timestamp": "2026-08-27T19:48:29.159485+00:00",
+      "summary": "The companion initiated a review of the word 'die Tasse' (cup), which the user had difficulty remembering. The companion also noticed a patterned object behind the user before being interrupted by a question. The interaction was friendly, encouraging, and open to using English or Moroccan Darija."
+    },
+    {
+      "session_id": "S20260827_220350",
+      "timestamp": "2026-08-27T21:13:47.079046+00:00",
+      "summary": "The session focused on identifying desk objects (mouse, keyboard, laptop, monitor, mousepad) using the question 'Was ist das?'. The user showed interest in grammar, asking about the Dative case after 'auf', and requested to learn the German alphabet, starting with the letters A-E. The conversational vibe was warm and encouraging, utilizing Moroccan Darija to explain concepts."
+    },
+    {
+      "session_id": "S20260827_231733",
+      "timestamp": "2026-08-27T22:20:18.859530+00:00",
+      "summary": "The session was conducted in a friendly mix of Moroccan Darija, English, and German, focusing on identifying objects in the user's room via camera. The user showed several items including a TV, a Moroccan teapot, a phone, and a toothbrush, learning their German equivalents. The vibe was highly interactive and encouraging, though the user's camera cut out near the end."
+    },
+    {
+      "session_id": "S20260902_193908",
+      "timestamp": "2026-09-02T18:45:00.997044+00:00",
+      "summary": "The session focused on naming objects around the user's desk and room, such as their colorful keyboard, monitor, rug, and sofa. The user showed these items on camera, leading to active vocabulary practice. The vibe was encouraging, with a specific focus on mastering the pronunciation of the German 'ch' sound in 'Teppich'."
+    },
+    {
+      "session_id": "S20260903_001217",
+      "timestamp": "2026-09-02T23:22:35.929542+00:00",
+      "summary": "Bilal practiced vocabulary for items in his room, including his keyboard, floor, ceiling, and window. He also spent a significant portion of the session brainstorming a short, strong German name for his AI companion, exploring words like 'Retter' (savior) and 'Fels' (rock). The session was highly interactive, conversational, and focused on vocabulary building."
+    },
+    {
+      "session_id": "S20260903_002225",
+      "timestamp": "2026-09-02T23:28:05.609740+00:00",
+      "summary": "Bilal reconnected and showed his desk setup, including his colorful keyboard, mouse, and a blue rug. The session focused on reinforcing German vocabulary for these everyday objects while mixing in Moroccan Darija. The vibe was friendly and encouraging as Bilal successfully recalled and pronounced several German nouns."
+    },
+    {
+      "session_id": "S20260903_011237",
+      "timestamp": "2026-09-03T00:13:18.875348+00:00",
+      "summary": "The companion greeted Bilal late at night while he was sitting at his desk. The companion noticed a cool glow on Bilal's computer mouse, establishing a friendly and relaxed late-night conversational vibe."
+    },
+    {
+      "session_id": "S20260903_013954",
+      "timestamp": "2026-09-03T00:40:26.562106+00:00",
+      "summary": "The session began late at night with Bilal relaxing in bed. The companion noticed a cushion behind him on camera and introduced the German word 'das Kissen' in a cozy, friendly tone."
+    },
+    {
+      "session_id": "S20260903_222958",
+      "timestamp": "2026-09-03T21:33:21.818912+00:00",
+      "summary": "Bilal was studying late at night at his wooden table in Casablanca, showing his notebook on camera. The notebook contained handwritten notes on the German alphabet, pronunciation guides, and a dedicated box for Umlaute. The vibe was warm and encouraging as they discussed his study environment and self-study progress."
+    }
+  ]
+}

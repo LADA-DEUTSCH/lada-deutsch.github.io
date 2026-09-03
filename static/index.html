@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#07090e">
+  <title>LADA — Live Active Deutsch Anywhere</title>
+  <style>
+    :root {
+      --bg-dark: #07090e;
+      --panel-bg: rgba(13, 16, 27, 0.96);
+      --card-bg: rgba(22, 27, 44, 0.88);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-main);
+    }
+
+    #app-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Fullscreen Viewfinder & Ambient Visualizer */
+    #viewfinder-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+      background: #06070a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    video#camera-feed {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.3s ease;
+    }
+
+    video.mirrored {
+      transform: scaleX(-1);
+    }
+
+    video.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Ambient Gemini Live Glowing Orb (When Camera is Off - Zero Tokens) */
+    #orb-wrapper {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    #orb-wrapper.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .gemini-orb {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #60a5fa, #3b82f6 45%, #9333ea 75%, #06b6d4 100%);
+      box-shadow: 0 0 60px rgba(59, 130, 246, 0.5), 0 0 100px rgba(147, 51, 234, 0.35);
+      animation: orbFloat 4s ease-in-out infinite, orbGlow 2.5s ease-in-out infinite alternate;
+    }
+
+    .orb-pulse-ring {
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(96, 165, 250, 0.3);
+      animation: ringPulse 3s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+    }
+
+    .orb-status-text {
+      margin-top: 36px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: #93c5fd;
+      text-transform: uppercase;
+    }
+
+    .orb-subtext {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-10px) scale(1.03); }
+    }
+
+    @keyframes orbGlow {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.25); box-shadow: 0 0 80px rgba(59, 130, 246, 0.7), 0 0 120px rgba(147, 51, 234, 0.5); }
+    }
+
+    @keyframes ringPulse {
+      0% { transform: scale(0.7); opacity: 0.8; }
+      100% { transform: scale(1.35); opacity: 0; }
+    }
+
+    .viewfinder-gradient {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(7,9,14,0.7) 0%, rgba(7,9,14,0) 18%, rgba(7,9,14,0) 65%, rgba(7,9,14,0.92) 100%);
+      z-index: 3;
+    }
+
+    /* Top Navigation Bar */
+    .top-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: max(16px, env(safe-area-inset-top)) 16px 14px 16px;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(13, 16, 27, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-red);
+      flex-shrink: 0;
+    }
+
+    .status-dot.live {
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulse 1.8s infinite;
+    }
+
+    .status-dot.connecting {
+      background: var(--accent-cyan);
+      box-shadow: 0 0 8px var(--accent-cyan);
+    }
+
+    .top-left-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lada-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(13, 16, 27, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(13, 16, 27, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    }
+
+    .icon-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+      stroke: currentColor;
+      fill: none;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.92);
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .icon-btn.active {
+      background: rgba(59, 130, 246, 0.85);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Caption Card Carousel — Translucent Frosted Glass & Dynamic Upward Expanding Board */
+    #caption-carousel {
+      position: absolute;
+      bottom: max(104px, calc(env(safe-area-inset-bottom) + 90px));
+      left: 0;
+      right: 0;
+      z-index: 9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      pointer-events: auto;
+    }
+
+    #caption-carousel.hidden {
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+    }
+
+    .carousel-nav {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      width: calc(100% - 24px);
+      max-width: 820px;
+    }
+
+    .carousel-arrow {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(10, 14, 26, 0.45);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-bottom: 2px;
+      transition: background 0.15s ease, transform 0.15s ease, opacity 0.2s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    }
+
+    .carousel-arrow:active {
+      transform: scale(0.9);
+      background: rgba(59, 130, 246, 0.6);
+    }
+
+    .carousel-arrow.disabled {
+      opacity: 0.15;
+      pointer-events: none;
+    }
+
+    .carousel-arrow svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      fill: none;
+    }
+
+    .caption-card {
+      flex: 1;
+      min-width: 0;
+      padding: 14px 18px;
+      background: rgba(8, 12, 22, 0.38);
+      backdrop-filter: blur(16px) saturate(160%);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      transform: translateZ(0);
+      will-change: height, transform;
+    }
+
+    .caption-card-text {
+      font-size: 16px;
+      line-height: 1.52;
+      font-weight: 600;
+      color: #ffffff;
+      letter-spacing: 0.2px;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.95), 0 0 2px rgba(0,0,0,0.8);
+      word-break: break-word;
+      white-space: pre-wrap;
+      max-height: 130px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.25) transparent;
+    }
+
+    .caption-card-text::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .caption-card-text::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.3);
+      border-radius: 4px;
+    }
+
+    /* Live German Words & Gender Color Highlighting */
+    .hl-de {
+      display: inline-block;
+      padding: 1px 6px;
+      margin: 0 1px;
+      border-radius: 8px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      vertical-align: baseline;
+      text-shadow: none;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .hl-de.der {
+      color: #93c5fd;
+      background: rgba(30, 64, 175, 0.45);
+      border: 1px solid rgba(96, 165, 250, 0.55);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+    }
+    .hl-de.die {
+      color: #f472b6;
+      background: rgba(157, 23, 77, 0.45);
+      border: 1px solid rgba(244, 114, 182, 0.55);
+      box-shadow: 0 0 10px rgba(236, 72, 153, 0.35);
+    }
+    .hl-de.das {
+      color: #6ee7b7;
+      background: rgba(6, 95, 70, 0.45);
+      border: 1px solid rgba(52, 211, 153, 0.55);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+    }
+    .hl-de.dem {
+      color: #7dd3fc;
+      background: rgba(3, 105, 161, 0.45);
+      border: 1px solid rgba(56, 189, 248, 0.55);
+      box-shadow: 0 0 8px rgba(14, 165, 233, 0.3);
+    }
+    .hl-de.ein {
+      color: #fde68a;
+      background: rgba(180, 83, 9, 0.45);
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.3);
+    }
+    .hl-de.quote {
+      color: #fef08a;
+      background: rgba(161, 98, 7, 0.4);
+      border: 1px solid rgba(250, 204, 21, 0.5);
+      box-shadow: 0 0 8px rgba(250, 204, 21, 0.3);
+    }
+    .hl-de .hl-art {
+      font-weight: 800;
+      opacity: 0.95;
+      text-transform: lowercase;
+      margin-right: 2px;
+    }
+
+    .carousel-counter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+      padding: 3px 14px;
+      background: rgba(10, 14, 26, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #f1f5f9;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .caption-card.streaming {
+      border-color: rgba(96, 165, 250, 0.65);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 20px rgba(59, 130, 246, 0.35);
+    }
+
+    .caption-card.card-transition {
+      animation: cardSwitch 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes cardSwitch {
+      from { opacity: 0.6; transform: translateY(4px) scale(0.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Live Generative Stage HUD (Interactive Compound Breakdowns, Phonetics, Choices) */
+    #live-stage {
+      position: absolute;
+      bottom: max(225px, calc(env(safe-area-inset-bottom) + 210px));
+      left: 12px;
+      right: 12px;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      transition: opacity 0.28s ease, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #live-stage.hidden {
+      opacity: 0;
+      transform: translateY(12px) scale(0.96);
+      pointer-events: none;
+    }
+    .stage-card {
+      pointer-events: auto;
+      max-width: 520px;
+      width: 100%;
+      background: rgba(10, 14, 26, 0.76);
+      backdrop-filter: blur(22px) saturate(170%);
+      -webkit-backdrop-filter: blur(22px) saturate(170%);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 22px;
+      padding: 14px 18px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(59, 130, 246, 0.25);
+      animation: stageSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+    @keyframes stageSlideUp {
+      from { opacity: 0; transform: translateY(14px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .stage-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .stage-badge.compound {
+      background: rgba(59, 130, 246, 0.25);
+      color: #93c5fd;
+      border: 1px solid rgba(96, 165, 250, 0.4);
+    }
+    .stage-badge.phonetic {
+      background: rgba(236, 72, 153, 0.25);
+      color: #f472b6;
+      border: 1px solid rgba(244, 114, 182, 0.4);
+    }
+    .stage-badge.choice {
+      background: rgba(16, 185, 129, 0.25);
+      color: #6ee7b7;
+      border: 1px solid rgba(52, 211, 153, 0.4);
+    }
+    .stage-close {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    .stage-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: #fff;
+    }
+    .stage-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .compound-parts-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    .compound-part-pill {
+      padding: 6px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .compound-part-word {
+      font-weight: 700;
+      font-size: 14px;
+      color: #fff;
+    }
+    .compound-part-meaning {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    .compound-plus {
+      color: var(--accent-cyan);
+      font-weight: 800;
+      font-size: 16px;
+    }
+    .stage-rule {
+      font-size: 12px;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 8px 12px;
+      border-radius: 10px;
+      border-left: 3px solid var(--accent-cyan);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .choice-pills-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .choice-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 14px;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+    .choice-btn:active, .choice-btn.selected {
+      background: var(--accent-blue);
+      box-shadow: 0 0 16px var(--accent-blue);
+      transform: scale(0.97);
+    }
+    .phonetic-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+      font-size: 12px;
+    }
+    .phonetic-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .phonetic-label {
+      font-weight: 700;
+      color: var(--accent-cyan);
+      min-width: 90px;
+      flex-shrink: 0;
+    }
+    .phonetic-val {
+      color: #e2e8f0;
+      line-height: 1.35;
+    }
+
+    /* Desktop / Laptop Large Board Styling */
+    @media (min-width: 768px) {
+      #caption-carousel {
+        bottom: max(112px, calc(env(safe-area-inset-bottom) + 100px));
+      }
+      .carousel-nav {
+        max-width: 820px;
+        gap: 16px;
+      }
+      .carousel-arrow {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 4px;
+      }
+      .carousel-arrow svg {
+        width: 24px;
+        height: 24px;
+      }
+      .caption-card {
+        padding: 18px 26px;
+        border-radius: 24px;
+      }
+      .caption-card-text {
+        font-size: 19px;
+        line-height: 1.6;
+        max-height: 200px;
+      }
+      .carousel-counter {
+        font-size: 13px;
+        padding: 4px 16px;
+      }
+    }
+
+    /* Bottom Control Dock */
+    .bottom-dock {
+      position: absolute;
+      bottom: max(26px, env(safe-area-inset-bottom));
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      padding: 0 20px;
+    }
+
+    .dock-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(13, 16, 27, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .dock-btn svg {
+      stroke-width: 2.2;
+      stroke: currentColor;
+      fill: none;
+    }
+
+    .dock-btn-secondary {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+    }
+
+    .dock-btn-secondary svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .dock-btn-secondary:active {
+      transform: scale(0.92);
+    }
+
+    .dock-btn-secondary.muted {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+
+    .dock-btn-secondary.paused {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: #f59e0b;
+      color: #f59e0b;
+    }
+
+    .dock-btn-main {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45);
+    }
+
+    .dock-btn-main svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    .dock-btn-main.active {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      box-shadow: 0 8px 25px rgba(239, 68, 68, 0.55);
+    }
+
+    .dock-btn-main:active {
+      transform: scale(0.92);
+    }
+
+    /* Sliding Drawer for Settings & Learning Notes */
+    #drawer-container {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 84dvh;
+      max-height: 84dvh;
+      background: var(--panel-bg);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border-top: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 26px 26px 0 0;
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(105%);
+      transition: transform 0.32s cubic-bezier(0.1, 0.9, 0.2, 1);
+      box-shadow: 0 -12px 45px rgba(0,0,0,0.85);
+    }
+
+    #drawer-container.open {
+      transform: translateY(0);
+    }
+
+    .drawer-handle-bar {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 12px 0 8px 0;
+      cursor: pointer;
+    }
+
+    .drawer-handle {
+      width: 44px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 8px;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 18px 12px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .drawer-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .tab-btn {
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-blue);
+      color: #fff;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+    }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 18px 32px 18px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .key-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 12px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #a7f3d0;
+    }
+
+    .key-badge.active-key {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: var(--accent-blue);
+      color: #93c5fd;
+      font-weight: 700;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat-card {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 10px 6px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+    }
+
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .vocab-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 13px;
+      margin: 3px;
+      color: #e2e8f0;
+    }
+
+    .article-badge {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+    .article-badge.der { background: rgba(59, 130, 246, 0.3); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.5); }
+    .article-badge.die { background: rgba(236, 72, 153, 0.3); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.5); }
+    .article-badge.das { background: rgba(16, 185, 129, 0.3); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.5); }
+    .article-badge.verb { background: rgba(245, 158, 11, 0.3); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.5); }
+
+    .fact-item {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(168, 85, 247, 0.12);
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: #e9d5ff;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .phrase-item {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.2);
+      margin-bottom: 8px;
+    }
+    .phrase-german {
+      font-weight: 700;
+      color: #38bdf8;
+      font-size: 14px;
+    }
+    .phrase-english {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .diary-item {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 10px;
+    }
+    .diary-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .diary-body {
+      font-size: 13px;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 11px 14px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .btn-save {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent-blue);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .markdown-notes-body {
+      font-size: 13px;
+      line-height: 1.55;
+      color: #cbd5e1;
+    }
+
+    .markdown-notes-body h1, .markdown-notes-body h2, .markdown-notes-body h3 {
+      color: #fff;
+      margin-top: 14px;
+      margin-bottom: 6px;
+    }
+
+    .markdown-notes-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 12px;
+    }
+
+    .markdown-notes-body th, .markdown-notes-body td {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 8px;
+    }
+
+    .markdown-notes-body th {
+      background: rgba(255, 255, 255, 0.05);
+    }
+  </style>
+</head>
+<body>
+  <div id="app-container">
+    <!-- Camera Viewfinder & Ambient Visualizer -->
+    <div id="viewfinder-container">
+      <video id="camera-feed" autoplay playsinline muted></video>
+      <div id="orb-wrapper">
+        <div class="orb-pulse-ring"></div>
+        <div class="gemini-orb"></div>
+        <div class="orb-status-text">Audio Only Mode</div>
+        <div class="orb-subtext">Zero Camera Tokens Used</div>
+      </div>
+      <div class="viewfinder-gradient"></div>
+    </div>
+
+    <canvas id="capture-canvas" style="display: none;"></canvas>
+
+    <!-- Top Action Bar -->
+    <div class="top-bar">
+      <div class="top-left-group">
+        <div class="status-pill">
+          <div id="status-indicator" class="status-dot"></div>
+          <span id="status-text">Ready</span>
+        </div>
+        <div class="lada-badge" title="Live Active Deutsch Anywhere">
+          <span style="font-weight: 900; letter-spacing: 1.2px; font-size: 13px; color: #fff;">LADA</span>
+          <span style="font-size: 10px; color: var(--accent-cyan); font-weight: 700; opacity: 0.95;">· LIVE DEUTSCH</span>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <!-- Live Caption (CC) Toggle Button -->
+        <button id="toggle-live-caption" class="icon-btn active" title="Live Subtitles (CC)">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><path d="M8 10h.01"></path><path d="M12 10h.01"></path><path d="M16 10h.01"></path></svg>
+        </button>
+
+        <!-- Audio Output Toggle Button -->
+        <button id="toggle-audio" class="icon-btn active" title="Audio">
+          <svg id="icon-speaker" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+        </button>
+
+        <!-- Settings & Notes Button -->
+        <button id="btn-open-drawer" class="icon-btn" title="Settings & Notes">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Generative Stage HUD (Interactive Compound Cards, Phonetics, Choices) -->
+    <div id="live-stage" class="hidden"></div>
+
+    <!-- Caption Card Carousel — Reviewable AI Speech Cards -->
+    <div id="caption-carousel" class="hidden">
+      <div class="carousel-nav">
+        <button id="carousel-prev" class="carousel-arrow disabled" title="Previous">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="caption-card" id="active-caption-card">
+          <div class="caption-card-text" id="caption-card-text"></div>
+        </div>
+        <button id="carousel-next" class="carousel-arrow disabled" title="Next">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+      <div class="carousel-counter" id="carousel-counter"></div>
+    </div>
+
+    <!-- Bottom Control Dock -->
+    <div class="bottom-dock">
+      <!-- Camera Toggle (On/Off) -->
+      <button id="btn-camera-toggle" class="dock-btn dock-btn-secondary" title="Camera On/Off">
+        <svg id="icon-camera" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+      </button>
+
+      <!-- Pause Call -->
+      <button id="btn-pause" class="dock-btn dock-btn-secondary" title="Pause Call" style="display:none;">
+        <svg id="icon-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+      </button>
+
+      <!-- Main Call Button -->
+      <button id="btn-main-call" class="dock-btn dock-btn-main" title="Start Call">
+        <svg id="icon-call" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+      </button>
+
+      <!-- Mic Toggle (Mute/Unmute) -->
+      <button id="btn-mic-toggle" class="dock-btn dock-btn-secondary" title="Mic On/Off">
+        <svg id="icon-mic" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+      </button>
+
+      <!-- Flip Camera -->
+      <button id="btn-flip" class="dock-btn dock-btn-secondary" title="Switch Camera">
+        <svg viewBox="0 0 24 24"><path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 2.21 1.006 4.21 2.617 5.617L4 18h6v-6l-2.293 2.293A5.98 5.98 0 0 1 6 10c0-3.314 2.686-6 6-6s6 2.686 6 6c0 1.657-.672 3.157-1.757 4.243l1.414 1.414A7.963 7.963 0 0 0 20 10z"></path></svg>
+      </button>
+    </div>
+
+    <!-- Sliding Drawer for Settings & Learning Notes -->
+    <div id="drawer-container">
+      <div class="drawer-handle-bar" onclick="toggleDrawer(false)">
+        <div class="drawer-handle"></div>
+      </div>
+
+      <div class="drawer-header">
+        <div class="drawer-tabs">
+          <button id="tab-btn-settings" class="tab-btn active" onclick="switchDrawerTab('settings')">⚙️ Settings</button>
+          <button id="tab-btn-progress" class="tab-btn" onclick="switchDrawerTab('progress')">🧠 LADA Memory & Progress</button>
+        </div>
+        <button class="close-btn" onclick="toggleDrawer(false)">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="drawer-body">
+        <!-- Tab 1: Settings -->
+        <div id="pane-settings" class="tab-pane active">
+          <div class="card">
+            <div class="card-title">
+              <span>Active API Key Pool</span>
+              <span style="color: var(--accent-green);">Auto-Failover Active</span>
+            </div>
+            <div id="keys-list-container">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Neural AI Voice</div>
+            <div class="form-group">
+              <label for="select-voice">Voice Selection:</label>
+              <select id="select-voice" class="form-input">
+                <option value="Kore">Kore (Warm & Natural)</option>
+                <option value="Fenrir">Fenrir (Deep)</option>
+                <option value="Aoede">Aoede (Clear)</option>
+                <option value="Puck">Puck (Energetic)</option>
+              </select>
+            </div>
+            <button class="btn-save" onclick="saveSettings()">Save Configuration</button>
+          </div>
+        </div>
+
+        <!-- Tab 2: Progress & Saved Notes -->
+        <div id="pane-progress" class="tab-pane">
+          <div class="stat-row">
+            <div class="stat-card">
+              <div id="stat-sessions" class="stat-val">1</div>
+              <div class="stat-lbl">Sessions</div>
+            </div>
+            <div class="stat-card">
+              <div id="stat-vocab" class="stat-val">0</div>
+              <div class="stat-lbl">Words</div>
+            </div>
+            <div class="stat-card">
+              <div id="stat-facts" class="stat-val">0</div>
+              <div class="stat-lbl">Facts</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🧠 What LADA Remembers About You</div>
+            <div id="facts-list-container">
+              <p style="font-size: 13px; color: var(--text-muted);">As you talk, LADA will remember your life, room, and habits here.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🇩🇪 Learned Vocabulary (SRS)</div>
+            <div id="vocab-list-container">
+              <p style="font-size: 13px; color: var(--text-muted);">Practiced German words will automatically appear here!</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">💬 Mastered Phrases</div>
+            <div id="phrases-list-container">
+              <p style="font-size: 13px; color: var(--text-muted);">Full German sentences and expressions will appear here.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📖 Session Diary & Recaps</div>
+            <div id="diary-list-container">
+              <p style="font-size: 13px; color: var(--text-muted);">Recaps of your conversations will appear here.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let isLive = false;
+    let ws = null;
+    let localStream = null;
+    let facingMode = "environment";
+    let isCameraOn = true;
+    let isMicOn = true;
+    let captionsEnabled = true;
+    let audioOutputEnabled = true;
+    let frameInterval = null;
+    let isPaused = false;
+
+    // Hardware C++ Web Audio Engine
+    let audioCtx = null;
+    let nextPlayTime = 0;
+    let activeAudioSources = [];
+    let micAudioContext = null;
+    let micProcessor = null;
+    let micSource = null;
+
+    // Caption Card Carousel State
+    const captionCards = [];  // Array of strings, one per AI turn
+    let currentCardIndex = -1;
+    let isStreamingCard = false;
+
+    // DOM Elements
+    const cameraFeed = document.getElementById('camera-feed');
+    const orbWrapper = document.getElementById('orb-wrapper');
+    const captureCanvas = document.getElementById('capture-canvas');
+    const ctx = captureCanvas.getContext('2d');
+    const statusDot = document.getElementById('status-indicator');
+    const statusText = document.getElementById('status-text');
+    const btnMainCall = document.getElementById('btn-main-call');
+    const btnFlip = document.getElementById('btn-flip');
+    const btnCameraToggle = document.getElementById('btn-camera-toggle');
+    const btnMicToggle = document.getElementById('btn-mic-toggle');
+    const btnPause = document.getElementById('btn-pause');
+    const captionCarousel = document.getElementById('caption-carousel');
+    const captionCardText = document.getElementById('caption-card-text');
+    const carouselCounter = document.getElementById('carousel-counter');
+    const carouselPrev = document.getElementById('carousel-prev');
+    const carouselNext = document.getElementById('carousel-next');
+    const toggleLiveCaptionBtn = document.getElementById('toggle-live-caption');
+    const toggleAudioBtn = document.getElementById('toggle-audio');
+    const drawer = document.getElementById('drawer-container');
+
+    // SVGs for state switching
+    const SVG_CAMERA_ON = `<polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>`;
+    const SVG_CAMERA_OFF = `<path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10"></path><line x1="1" y1="1" x2="23" y2="23"></line>`;
+    const SVG_MIC_ON = `<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line>`;
+    const SVG_MIC_OFF = `<line x1="1" y1="1" x2="23" y2="23"></line><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"></path><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line>`;
+    const SVG_SPEAKER_ON = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>`;
+    const SVG_SPEAKER_OFF = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line>`;
+    const SVG_PHONE_CALL = `<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>`;
+    const SVG_PHONE_HANGUP = `<path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7 2 2 0 0 1 1.72 2v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.42 19.42 0 0 1-3.33-2.67m-2.67-3.34a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91"></path><line x1="23" y1="1" x2="1" y2="23"></line>`;
+    const SVG_PAUSE = `<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>`;
+    const SVG_PLAY = `<polygon points="5 3 19 12 5 21 5 3"></polygon>`;
+
+    // 1. Camera Initialization
+    async function initCamera() {
+      try {
+        if (localStream) {
+          const activeTracks = localStream.getTracks().filter(t => t.readyState === 'live');
+          if (activeTracks.length > 0) {
+            if (isCameraOn && cameraFeed.srcObject !== localStream) {
+              cameraFeed.srcObject = localStream;
+            }
+            updateCameraView();
+            return;
+          }
+        }
+        const constraints = {
+          video: isCameraOn ? {
+            facingMode: facingMode,
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+          } : false,
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        };
+        localStream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (isCameraOn) {
+          cameraFeed.srcObject = localStream;
+          if (facingMode === "user") {
+            cameraFeed.classList.add('mirrored');
+          } else {
+            cameraFeed.classList.remove('mirrored');
+          }
+        }
+        updateCameraView();
+      } catch (err) {
+        console.warn("Camera init note:", err);
+        // Fallback: Audio only if video is denied or camera hardware is busy
+        if (!localStream) {
+          try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            isCameraOn = false;
+            updateCameraView();
+          } catch (e2) {
+            console.error("Audio fallback failed:", e2);
+          }
+        }
+      }
+    }
+
+    // Toggle Camera ON / OFF during call (Zero Video Tokens when OFF)
+    btnCameraToggle.onclick = async () => {
+      isCameraOn = !isCameraOn;
+      
+      if (!isCameraOn) {
+        stopCameraFrameStreaming();
+        if (localStream) {
+          localStream.getVideoTracks().forEach(t => {
+            t.stop();
+            localStream.removeTrack(t);
+          });
+        }
+        cameraFeed.srcObject = null;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "camera_state", is_on: false }));
+        }
+      } else {
+        try {
+          const videoStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: facingMode, width: { ideal: 640 }, height: { ideal: 480 } }
+          });
+          const newTrack = videoStream.getVideoTracks()[0];
+          if (localStream) { localStream.addTrack(newTrack); } else { localStream = videoStream; }
+          cameraFeed.srcObject = localStream;
+          if (!isPaused) startCameraFrameStreaming();
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: "camera_state", is_on: true }));
+          }
+        } catch (err) { console.warn("Camera restart:", err); }
+      }
+      updateCameraView();
+    };
+
+    function startCameraFrameStreaming() {
+      if (!frameInterval && isLive && isCameraOn && !isPaused) {
+        captureCanvas.width = 480;
+        captureCanvas.height = 640;
+        frameInterval = setInterval(() => {
+          if (ws && ws.readyState === WebSocket.OPEN && isCameraOn && !isPaused && cameraFeed.videoWidth > 0) {
+            ctx.drawImage(cameraFeed, 0, 0, 480, 640);
+            const base64 = captureCanvas.toDataURL('image/jpeg', 0.45).split(',')[1];
+            ws.send(JSON.stringify({ type: "media_chunk", mimeType: "image/jpeg", data: base64 }));
+          }
+        }, 2000);
+      }
+    }
+
+    function stopCameraFrameStreaming() {
+      if (frameInterval) { clearInterval(frameInterval); frameInterval = null; }
+    }
+
+    function updateCameraView() {
+      if (isCameraOn) {
+        cameraFeed.classList.remove('hidden');
+        orbWrapper.classList.remove('active');
+        btnCameraToggle.classList.remove('muted');
+        document.getElementById('icon-camera').innerHTML = SVG_CAMERA_ON;
+      } else {
+        cameraFeed.classList.add('hidden');
+        orbWrapper.classList.add('active');
+        btnCameraToggle.classList.add('muted');
+        document.getElementById('icon-camera').innerHTML = SVG_CAMERA_OFF;
+      }
+    }
+
+    // Flip Camera
+    btnFlip.onclick = async () => {
+      facingMode = (facingMode === "environment") ? "user" : "environment";
+      await initCamera();
+    };
+
+    // Toggle Microphone (Mute / Unmute)
+    btnMicToggle.onclick = () => {
+      isMicOn = !isMicOn;
+      btnMicToggle.classList.toggle('muted', !isMicOn);
+      document.getElementById('icon-mic').innerHTML = isMicOn ? SVG_MIC_ON : SVG_MIC_OFF;
+    };
+
+    // Toggle Live Caption Cards (CC)
+    toggleLiveCaptionBtn.onclick = () => {
+      captionsEnabled = !captionsEnabled;
+      toggleLiveCaptionBtn.classList.toggle('active', captionsEnabled);
+      captionCarousel.classList.toggle('hidden', !captionsEnabled || captionCards.length === 0);
+    };
+
+    // Toggle Speaker Audio Output
+    toggleAudioBtn.onclick = () => {
+      audioOutputEnabled = !audioOutputEnabled;
+      toggleAudioBtn.classList.toggle('active', audioOutputEnabled);
+      document.getElementById('icon-speaker').innerHTML = audioOutputEnabled ? SVG_SPEAKER_ON : SVG_SPEAKER_OFF;
+    };
+
+    // PAUSE CALL — Mutes mic, stops video frames, notifies Gemini
+    btnPause.onclick = () => {
+      isPaused = !isPaused;
+      btnPause.classList.toggle('paused', isPaused);
+      document.getElementById('icon-pause').innerHTML = isPaused ? SVG_PLAY : SVG_PAUSE;
+
+      if (isPaused) {
+        // Stop sending audio + video
+        isMicOn = false;
+        btnMicToggle.classList.add('muted');
+        document.getElementById('icon-mic').innerHTML = SVG_MIC_OFF;
+        stopCameraFrameStreaming();
+        statusText.innerText = "Paused";
+      } else {
+        // Resume sending audio + video
+        isMicOn = true;
+        btnMicToggle.classList.remove('muted');
+        document.getElementById('icon-mic').innerHTML = SVG_MIC_ON;
+        if (isCameraOn) startCameraFrameStreaming();
+        statusText.innerText = "Live";
+      }
+    };
+
+    // Live Generative Stage System (Compound Cards, Phonetics, Choices)
+    let stageAutoDismissTimer = null;
+
+    function dismissLiveStage() {
+      const stage = document.getElementById('live-stage');
+      if (stage) stage.classList.add('hidden');
+      if (stageAutoDismissTimer) {
+        clearTimeout(stageAutoDismissTimer);
+        stageAutoDismissTimer = null;
+      }
+    }
+
+    function selectChoice(choice) {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+      console.log("👆 User tapped choice:", choice);
+      const btns = document.querySelectorAll('.choice-btn');
+      btns.forEach(b => {
+        if (b.innerText.trim().toLowerCase() === choice.trim().toLowerCase()) {
+          b.classList.add('selected');
+        }
+      });
+      ws.send(JSON.stringify({
+        type: "choice_selected",
+        choice: choice
+      }));
+      setTimeout(dismissLiveStage, 1500);
+    }
+
+    function handleStageEvent(eventType, data) {
+      const stage = document.getElementById('live-stage');
+      if (!stage || !data) return;
+
+      if (stageAutoDismissTimer) clearTimeout(stageAutoDismissTimer);
+
+      let cardHtml = '';
+
+      if (eventType === 'compound_card') {
+        const partsHtml = (data.parts || []).map(p => `
+          <div class="compound-part-pill">
+            <span class="compound-part-word">${p.word}</span>
+            <span class="compound-part-meaning">${p.meaning}</span>
+          </div>
+        `).join('<span class="compound-plus">+</span>');
+
+        cardHtml = `
+          <div class="stage-card">
+            <div class="stage-header">
+              <div class="stage-badge compound">🧩 Compound Breakdown</div>
+              <button class="stage-close" onclick="dismissLiveStage()">✕</button>
+            </div>
+            <div class="stage-title">${data.lemma} <span style="font-size: 13px; color: #94a3b8; font-weight: normal;">(${data.translation})</span></div>
+            <div class="compound-parts-row">${partsHtml}</div>
+            ${data.rule ? `<div class="stage-rule">💡 ${data.rule}</div>` : ''}
+          </div>
+        `;
+        stageAutoDismissTimer = setTimeout(dismissLiveStage, 14000);
+
+      } else if (eventType === 'phonetic_cue') {
+        cardHtml = `
+          <div class="stage-card">
+            <div class="stage-header">
+              <div class="stage-badge phonetic">🗣️ Mouth & Sound Mechanic</div>
+              <button class="stage-close" onclick="dismissLiveStage()">✕</button>
+            </div>
+            <div class="stage-title">${data.sound}</div>
+            <div class="phonetic-grid">
+              <div class="phonetic-row">
+                <span class="phonetic-label">Tongue:</span>
+                <span class="phonetic-val">${data.tongue_position}</span>
+              </div>
+              <div class="phonetic-row">
+                <span class="phonetic-label">Darija Bridge:</span>
+                <span class="phonetic-val" style="color: #fde68a;">${data.darija_bridge}</span>
+              </div>
+              <div class="phonetic-row">
+                <span class="phonetic-label">Tip:</span>
+                <span class="phonetic-val">${data.tip}</span>
+              </div>
+            </div>
+          </div>
+        `;
+        stageAutoDismissTimer = setTimeout(dismissLiveStage, 14000);
+
+      } else if (eventType === 'choice_pills') {
+        const pillsHtml = (data.choices || []).map(c => `
+          <button class="choice-btn" onclick="selectChoice('${c.replace(/'/g, "\\'")}')">${c}</button>
+        `).join('');
+
+        cardHtml = `
+          <div class="stage-card">
+            <div class="stage-header">
+              <div class="stage-badge choice">⚡ Quick Choice</div>
+              <button class="stage-close" onclick="dismissLiveStage()">✕</button>
+            </div>
+            <div class="stage-title" style="margin-bottom: 4px;">${data.question}</div>
+            <div class="choice-pills-row">${pillsHtml}</div>
+          </div>
+        `;
+        stageAutoDismissTimer = setTimeout(dismissLiveStage, 12000);
+      }
+
+      if (cardHtml) {
+        stage.innerHTML = cardHtml;
+        stage.classList.remove('hidden');
+      }
+    }
+
+    // 2. Caption Card Carousel System — Zero Flicker & Smooth Upward Expansion
+    function addNewCaptionCard() {
+      captionCards.push('');
+      currentCardIndex = captionCards.length - 1;
+      isStreamingCard = true;
+      
+      const card = document.getElementById('active-caption-card');
+      card.classList.add('streaming');
+      captionCardText.textContent = '';
+      updateCarouselUI(true);
+      captionCarousel.classList.remove('hidden');
+    }
+
+    function formatCaptionWithGermanHighlights(rawText) {
+      if (!rawText) return '';
+      let html = rawText
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+      // 1. der + Noun (Masculine - Blue)
+      html = html.replace(/\b(Der|der)\s+([A-ZÄÖÜ][a-zäöüß]+)\b/g, '<span class="hl-de der"><span class="hl-art">$1</span> $2</span>');
+
+      // 2. die + Noun (Feminine - Pink)
+      html = html.replace(/\b(Die|die)\s+([A-ZÄÖÜ][a-zäöüß]+)\b/g, '<span class="hl-de die"><span class="hl-art">$1</span> $2</span>');
+
+      // 3. das + Noun (Neuter - Green)
+      html = html.replace(/\b(Das|das)\s+([A-ZÄÖÜ][a-zäöüß]+)\b/g, '<span class="hl-de das"><span class="hl-art">$1</span> $2</span>');
+
+      // 4. dem + Noun (Dative - Cyan)
+      html = html.replace(/\b(Dem|dem)\s+([A-ZÄÖÜ][a-zäöüß]+)\b/g, '<span class="hl-de dem"><span class="hl-art">$1</span> $2</span>');
+
+      // 5. Indefinite articles (ein/eine/einen/einem/einer - Amber)
+      html = html.replace(/\b(Ein|Eine|Einen|Einem|Einer|ein|eine|einen|einem|einer)\s+([A-ZÄÖÜ][a-zäöüß]+)\b/g, '<span class="hl-de ein"><span class="hl-art">$1</span> $2</span>');
+
+      // 6. Quoted German terms
+      html = html.replace(/&quot;([A-Za-zÄÖÜäöüß]{2,})&quot;/g, '&quot;<span class="hl-de quote">$1</span>&quot;');
+
+      return html;
+    }
+
+    function streamCaptionWord(word) {
+      if (!captionsEnabled) return;
+      if (captionCards.length === 0) {
+        addNewCaptionCard();
+      }
+      // Append word to current active turn
+      const latestIdx = captionCards.length - 1;
+      captionCards[latestIdx] += word;
+
+      // If viewing latest card, stream word directly into DOM with live German word coloring!
+      if (currentCardIndex === latestIdx) {
+        captionCardText.innerHTML = formatCaptionWithGermanHighlights(captionCards[latestIdx]);
+        // As lines wrap and expand, scroll text smoothly so newest words stay at bottom
+        captionCardText.scrollTop = captionCardText.scrollHeight;
+      }
+      captionCarousel.classList.remove('hidden');
+    }
+
+    function finalizeCaption() {
+      isStreamingCard = false;
+      const card = document.getElementById('active-caption-card');
+      card.classList.remove('streaming');
+      updateCarouselUI(false);
+    }
+
+    function startNewCaptionTurn() {
+      // Only create new card if the previous card actually has text
+      if (captionCards.length === 0 || captionCards[captionCards.length - 1].trim().length > 0) {
+        addNewCaptionCard();
+      } else {
+        isStreamingCard = true;
+        const card = document.getElementById('active-caption-card');
+        card.classList.add('streaming');
+      }
+    }
+
+    function updateCarouselUI(withTransition = false) {
+      if (captionCards.length === 0) {
+        captionCarousel.classList.add('hidden');
+        return;
+      }
+      const card = document.getElementById('active-caption-card');
+      captionCardText.innerHTML = formatCaptionWithGermanHighlights(captionCards[currentCardIndex] || '');
+      captionCardText.scrollTop = captionCardText.scrollHeight;
+
+      card.classList.toggle('streaming', isStreamingCard && currentCardIndex === captionCards.length - 1);
+      carouselCounter.innerText = `${currentCardIndex + 1} / ${captionCards.length}`;
+
+      carouselPrev.classList.toggle('disabled', currentCardIndex <= 0);
+      carouselNext.classList.toggle('disabled', currentCardIndex >= captionCards.length - 1);
+
+      if (withTransition) {
+        card.classList.remove('card-transition');
+        void card.offsetWidth; // Clean reflow ONLY on card switch
+        card.classList.add('card-transition');
+      }
+    }
+
+    // Carousel Navigation
+    carouselPrev.onclick = () => {
+      if (currentCardIndex > 0) {
+        currentCardIndex--;
+        updateCarouselUI(true);
+      }
+    };
+
+    carouselNext.onclick = () => {
+      if (currentCardIndex < captionCards.length - 1) {
+        currentCardIndex++;
+        updateCarouselUI(true);
+      }
+    };
+
+    // 3. Web Audio Engine Unlock
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass({ sampleRate: 24000 });
+      }
+      if (audioCtx.state === 'suspended') { audioCtx.resume(); }
+    }
+
+    // 4. Hardware-Accelerated 24kHz PCM Playback with Instant Interruption Control
+    function playPcmChunk(base64Data) {
+      if (!audioOutputEnabled) return;
+      ensureAudioContext();
+      try {
+        const binary = atob(base64Data);
+        const sampleCount = Math.floor(binary.length / 2);
+        if (sampleCount === 0) return;
+        const float32 = new Float32Array(sampleCount);
+        for (let i = 0; i < sampleCount; i++) {
+          const low = binary.charCodeAt(i * 2);
+          const high = binary.charCodeAt(i * 2 + 1);
+          let int16 = (high << 8) | low;
+          if (int16 >= 0x8000) int16 -= 0x10000;
+          float32[i] = int16 / 32768.0;
+        }
+        const buffer = audioCtx.createBuffer(1, sampleCount, 24000);
+        buffer.copyToChannel(float32, 0);
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioCtx.destination);
+
+        activeAudioSources.push(source);
+        source.onended = () => {
+          activeAudioSources = activeAudioSources.filter(s => s !== source);
+        };
+
+        const now = audioCtx.currentTime;
+        if (nextPlayTime < now) { nextPlayTime = now + 0.05; }
+        source.start(nextPlayTime);
+        nextPlayTime += buffer.duration;
+      } catch (err) { console.warn("Audio buffer:", err); }
+    }
+
+    function stopAllAudio() {
+      for (const s of activeAudioSources) {
+        try { s.stop(); } catch (e) {}
+      }
+      activeAudioSources = [];
+      if (audioCtx) {
+        nextPlayTime = audioCtx.currentTime;
+      }
+      isStreamingCard = false;
+      updateCarouselUI(false);
+    }
+
+    // 5. Start / End Call
+    btnMainCall.onclick = async () => {
+      if (!isLive) {
+        await startCall();
+      } else {
+        endCall();
+      }
+    };
+
+    async function startCall() {
+      try {
+        statusDot.className = "status-dot connecting";
+        statusText.innerText = "Connecting...";
+
+        await initCamera();
+        ensureAudioContext();
+        nextPlayTime = 0;
+        stopAllAudio();
+        isPaused = false;
+        
+        // Clear previous session cards
+        captionCards.length = 0;
+        currentCardIndex = -1;
+        captionCarousel.classList.add('hidden');
+
+        const loc = window.location;
+        const wsProtocol = (loc.protocol === 'https:') ? 'wss:' : 'ws:';
+        const wsUrl = `${wsProtocol}//${loc.host}/ws/live`;
+
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          isLive = true;
+          statusDot.className = "status-dot live";
+          statusText.innerText = "Live";
+          btnMainCall.classList.add('active');
+          document.getElementById('icon-call').innerHTML = SVG_PHONE_HANGUP;
+          btnPause.style.display = 'flex';
+
+          if (isCameraOn) startCameraFrameStreaming();
+          startMicStream();
+        };
+
+        let isFirstChunkOfTurn = true;
+
+        ws.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          if (msg.type === "audio_pcm") {
+            playPcmChunk(msg.data);
+          } else if (msg.type === "caption_chunk") {
+            if (isFirstChunkOfTurn) {
+              startNewCaptionTurn();
+              isFirstChunkOfTurn = false;
+            }
+            streamCaptionWord(msg.text);
+          } else if (msg.type === "turn_complete") {
+            isFirstChunkOfTurn = true;
+            finalizeCaption();
+          } else if (msg.type === "interrupted") {
+            // Instant barge-in: User interrupted AI!
+            console.log("⚡ Interrupted by user speech — cutting audio playback");
+            stopAllAudio();
+            isFirstChunkOfTurn = true;
+            finalizeCaption();
+          } else if (msg.type === "status") {
+            statusText.innerText = msg.message || "Live";
+          } else if (msg.type === "stage_event") {
+            handleStageEvent(msg.event_type, msg.data);
+          } else if (msg.type === "key_rotated") {
+            statusText.innerText = msg.message;
+            loadSettingsUI();
+          }
+        };
+
+        ws.onclose = () => { endCall(false); };
+        ws.onerror = (e) => {
+          console.error("WS error:", e);
+          statusDot.className = "status-dot";
+          statusText.innerText = "Error";
+        };
+      } catch (err) {
+        console.error("startCall error:", err);
+        statusDot.className = "status-dot";
+        statusText.innerText = "Failed";
+      }
+    }
+
+    function startMicStream() {
+      try {
+        if (!localStream) return;
+        if (micProcessor) { micProcessor.disconnect(); micProcessor = null; }
+        if (micSource) { micSource.disconnect(); micSource = null; }
+        if (micAudioContext) { try { micAudioContext.close(); } catch(e) {} micAudioContext = null; }
+
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        micAudioContext = new AudioContextClass({ sampleRate: 16000 });
+        if (micAudioContext.state === 'suspended') {
+          micAudioContext.resume();
+        }
+        micSource = micAudioContext.createMediaStreamSource(localStream);
+        micProcessor = micAudioContext.createScriptProcessor(4096, 1, 1);
+        micSource.connect(micProcessor);
+        micProcessor.connect(micAudioContext.destination);
+        micProcessor.onaudioprocess = (e) => {
+          if (ws && ws.readyState === WebSocket.OPEN && isMicOn && !isPaused) {
+            const inputData = e.inputBuffer.getChannelData(0);
+            let pcm16 = new Int16Array(inputData.length);
+            for (let i = 0; i < inputData.length; i++) {
+              pcm16[i] = Math.max(-1, Math.min(1, inputData[i])) * 0x7FFF;
+            }
+            const binary = String.fromCharCode.apply(null, new Uint8Array(pcm16.buffer));
+            ws.send(JSON.stringify({
+              type: "media_chunk",
+              mimeType: "audio/pcm;rate=16000",
+              data: btoa(binary)
+            }));
+          }
+        };
+      } catch (err) { console.warn("Mic processing:", err); }
+    }
+
+    function endCall(sendEndSignal = true) {
+      if (sendEndSignal && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "session_end" }));
+      }
+      if (ws) { ws.close(); ws = null; }
+      stopCameraFrameStreaming();
+      stopAllAudio();
+      if (micProcessor) { micProcessor.disconnect(); micProcessor = null; }
+      if (micSource) { micSource.disconnect(); micSource = null; }
+      if (micAudioContext) { try { micAudioContext.close(); } catch(e) {} micAudioContext = null; }
+
+      isLive = false;
+      isPaused = false;
+      nextPlayTime = 0;
+      statusDot.className = "status-dot";
+      statusText.innerText = "Ended";
+      btnMainCall.classList.remove('active');
+      document.getElementById('icon-call').innerHTML = SVG_PHONE_CALL;
+      btnPause.style.display = 'none';
+      btnPause.classList.remove('paused');
+      document.getElementById('icon-pause').innerHTML = SVG_PAUSE;
+      
+      // Keep caption cards visible for review after call ends!
+      loadProgressUI();
+    }
+
+    // Drawer Controls & Tab Switching
+    document.getElementById('btn-open-drawer').onclick = () => { 
+      toggleDrawer(true); 
+      loadSettingsUI();
+      loadProgressUI();
+    };
+
+    function toggleDrawer(open) {
+      drawer.classList.toggle('open', open);
+    }
+
+    function switchDrawerTab(tabName) {
+      document.getElementById('tab-btn-settings').classList.toggle('active', tabName === 'settings');
+      document.getElementById('tab-btn-progress').classList.toggle('active', tabName === 'progress');
+      document.getElementById('pane-settings').classList.toggle('active', tabName === 'settings');
+      document.getElementById('pane-progress').classList.toggle('active', tabName === 'progress');
+      if (tabName === 'progress') {
+        loadProgressUI();
+      }
+    }
+
+    async function loadSettingsUI() {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        const container = document.getElementById('keys-list-container');
+        if (data.keys_preview && data.keys_preview.length > 0) {
+          container.innerHTML = data.keys_preview.map((keyStr, idx) => `
+            <div class="key-badge ${idx + 1 === data.active_key_index ? 'active-key' : ''}">
+              <span>Key #${idx + 1}: ${keyStr}</span>
+              <span>${idx + 1 === data.active_key_index ? 'ACTIVE' : 'READY'}</span>
+            </div>
+          `).join('');
+        }
+        if (data.voice_name) {
+          document.getElementById('select-voice').value = data.voice_name;
+        }
+      } catch (e) {}
+    }
+
+    async function loadProgressUI() {
+      try {
+        const res = await fetch('/api/progress');
+        const data = await res.json();
+        document.getElementById('stat-sessions').innerText = data.total_sessions || 1;
+        document.getElementById('stat-vocab').innerText = data.vocabulary_count || 0;
+        document.getElementById('stat-facts').innerText = (data.personal_facts && data.personal_facts.length) || 0;
+
+        // 1. Personal Memory Facts
+        const factsContainer = document.getElementById('facts-list-container');
+        if (data.personal_facts && data.personal_facts.length > 0) {
+          factsContainer.innerHTML = data.personal_facts.map(fact => `
+            <div class="fact-item">
+              <span>💡</span>
+              <span>${fact}</span>
+            </div>
+          `).join('');
+        } else {
+          factsContainer.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">As you talk, Gemini will remember your life, room, and habits here.</p>`;
+        }
+
+        // 2. Vocabulary with gender/part-of-speech badges
+        const vocabContainer = document.getElementById('vocab-list-container');
+        if (data.vocabulary_list && data.vocabulary_list.length > 0) {
+          vocabContainer.innerHTML = data.vocabulary_list.map(v => {
+            const art = (v.article && v.article !== '—') ? v.article.toLowerCase() : (v.part_of_speech === 'verb' ? 'verb' : '');
+            const badgeClass = art ? `article-badge ${art}` : 'article-badge';
+            const badgeText = (v.article && v.article !== '—') ? v.article : (v.part_of_speech || 'word');
+            const trans = v.translation ? ` · ${v.translation}` : '';
+            return `
+              <span class="vocab-pill">
+                <span class="${badgeClass}">${badgeText}</span>
+                <b>${v.lemma}</b>
+                <span style="font-size:11px; opacity:0.75;">${trans}</span>
+              </span>
+            `;
+          }).join('');
+        } else {
+          vocabContainer.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">Practiced German words will automatically appear here!</p>`;
+        }
+
+        // 3. Learned Phrases
+        const phrasesContainer = document.getElementById('phrases-list-container');
+        if (data.phrases_list && data.phrases_list.length > 0) {
+          phrasesContainer.innerHTML = data.phrases_list.map(p => `
+            <div class="phrase-item">
+              <div class="phrase-german">"${p.german}"</div>
+              <div class="phrase-english">${p.english}</div>
+            </div>
+          `).join('');
+        } else {
+          phrasesContainer.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">Full German sentences and expressions will appear here.</p>`;
+        }
+
+        // 4. Session Diary & Recaps
+        const diaryContainer = document.getElementById('diary-list-container');
+        if (data.session_history && data.session_history.length > 0) {
+          diaryContainer.innerHTML = data.session_history.slice().reverse().map(s => {
+            const dateStr = s.timestamp ? new Date(s.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : s.session_id;
+            return `
+              <div class="diary-item">
+                <div class="diary-header">
+                  <span>📅 Session ${s.session_id}</span>
+                  <span>${dateStr}</span>
+                </div>
+                <div class="diary-body">${s.summary}</div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          diaryContainer.innerHTML = `<p style="font-size: 13px; color: var(--text-muted);">Recaps of your conversations will appear here.</p>`;
+        }
+      } catch (e) {
+        console.error("Failed to load progress UI:", e);
+      }
+    }
+
+    async function saveSettings() {
+      const voice = document.getElementById('select-voice').value;
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voice_name: voice })
+      });
+      const result = await res.json();
+      alert(result.message || "Settings saved!");
+    }
+
+    // Auto-init on load
+    initCamera();
+    loadSettingsUI();
+    loadProgressUI();
+  </script>
+</body>
+</html>

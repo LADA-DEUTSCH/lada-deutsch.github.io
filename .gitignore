@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.pem
+__pycache__/
+*.pyc
+.system_generated/
+scratch/
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,15 @@
+{
+  "api_keys": [
+    "YOUR_GEMINI_API_KEY_1",
+    "YOUR_GEMINI_API_KEY_2",
+    "YOUR_GEMINI_API_KEY_3",
+    "YOUR_GEMINI_API_KEY_4",
+    "YOUR_GEMINI_API_KEY_5",
+    "YOUR_GEMINI_API_KEY_6"
+  ],
+  "model": "models/gemini-3.1-flash-live-preview",
+  "voice_name": "Kore",
+  "host": "0.0.0.0",
+  "port": 8000,
+  "current_key_idx": 0
+}

@@ -1,0 +1,27 @@
+{
+  "session_id": "S20260827_180113",
+  "timestamp": "2026-08-27T17:05:24.229472+00:00",
+  "turns_count": 4,
+  "transcript": [
+    {
+      "role": "model",
+      "text": "Hey, welcome back! I'm so happy we're hanging out again to practice your German. Ready to jump in? Let's see what you remember... what's the German word for \"table\" again?",
+      "time": "2026-08-27T17:01:26.055386+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Whoops, looks like your camera just turned off! No worries, I can still hear you perfectly. Now, back to that table... do you recall what we say in German?",
+      "time": "2026-08-27T17:01:48.889706+00:00"
+    },
+    {
+      "role": "model",
+      "text": "No pressure",
+      "time": "2026-08-27T17:02:00.861899+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, there you are again! Great to see you. So, about that table, do you remember the German word, or should we quickly review it?",
+      "time": "2026-08-27T17:02:09.099470+00:00"
+    }
+  ]
+}

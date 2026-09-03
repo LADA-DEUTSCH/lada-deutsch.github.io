@@ -1,0 +1,32 @@
+{
+  "session_id": "S20260827_171001",
+  "timestamp": "2026-08-27T16:12:21.786989+00:00",
+  "turns_count": 5,
+  "transcript": [
+    {
+      "role": "model",
+      "text": "Hey there!",
+      "time": "2026-08-27T16:10:03.340741+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Hey there! I'm your friendly German tutor, here to make learning easy and fun. You can just call me your buddy! So, what's up today? Anything you've got in front of you you'd like to learn in German? Let's start simple – maybe with the German word for hello, which is 'Hallo'. Want to try saying it with me?",
+      "time": "2026-08-27T16:10:28.242236+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Perfect! That's right! You've got it. Now, looking at your camera, I see some cool colors and patterns. Is there anything in particular you're seeing there that you'd like to know how to say in German? Maybe the word for \"colors\"? That would be \"Farben\". What do you think?",
+      "time": "2026-08-27T16:10:50.820852+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Exactly! You're a quick learner. Oh, I see you're holding a computer mouse now, and it has some cool pinkish lights! In German, we call that \"die Maus\". Want to try saying that with me? \"Die Maus\". Pretty similar to English, right?",
+      "time": "2026-08-27T16:11:10.919848+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Yeah, you got it! \"Die Maus\". And I notice you have a mouse pad below it with that orange and black design. In German, mouse pad is actually the same thing: \"das Mauspad\". Very straightforward, huh? What do you think of that one?",
+      "time": "2026-08-27T16:11:27.728501+00:00"
+    }
+  ]
+}

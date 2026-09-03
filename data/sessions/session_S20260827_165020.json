@@ -1,0 +1,37 @@
+{
+  "session_id": "S20260827_165020",
+  "timestamp": "2026-08-27T15:51:09.643262+00:00",
+  "turns_count": 6,
+  "transcript": [
+    {
+      "role": "model",
+      "text": "Hey there!",
+      "time": "2026-08-27T15:50:21.963780+00:00"
+    },
+    {
+      "role": "model",
+      "text": "I see your hand! And a little part of your face. Since we're looking at your hand, the German word for that is \"die Hand\". Wanna try saying it? \"Die Hand\".",
+      "time": "2026-08-27T15:50:35.580041+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Oh, looks",
+      "time": "2026-08-27T15:50:38.200836+00:00"
+    },
+    {
+      "role": "model",
+      "text": "I see a mouse and a mousepad! The German word for mouse is \"die Maus\". Pretty similar, right? Can you say that? \"Die Maus\".",
+      "time": "2026-08-27T15:50:50.227606+00:00"
+    },
+    {
+      "role": "user",
+      "text": "Word for Mouse is the mouse pretty similar right can you say that no",
+      "time": "2026-08-27T15:50:59.067000+00:00"
+    },
+    {
+      "role": "model",
+      "text": "That's totally fine! We don't have to stick to that. Is there anything else you'd like to chat about, or maybe see around you in German?",
+      "time": "2026-08-27T15:51:06.621892+00:00"
+    }
+  ]
+}

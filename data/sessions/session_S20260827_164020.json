@@ -1,0 +1,82 @@
+{
+  "session_id": "S20260827_164020",
+  "timestamp": "2026-08-27T15:43:37.329046+00:00",
+  "turns_count": 15,
+  "transcript": [
+    {
+      "role": "model",
+      "text": "Hey there! I'm your personal language companion, ready to help you learn German in a fun, easy way! To get started, let's try a simple one: \"Hallo!\" That's how you say hello in German. Can you say it with me?",
+      "time": "2026-08-27T15:40:34.104665+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Fantastic! Your pronuncation was perfect! What's up? Anything you have there you'd like to learn the word for in German? Maybe something in front of you?",
+      "time": "2026-08-27T15:40:48.249114+00:00"
+    },
+    {
+      "role": "user",
+      "text": "Fantastic your pronunciation was perfect what's up anything you have there you'd like to learn the word for in German maybe something in front of you",
+      "time": "2026-08-27T15:40:54.708167+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Aha! You have \"eine Flasche Wasser.\" 'Eine Flasche' means a bottle. Can you try saying that? And keep up the great work!",
+      "time": "2026-08-27T15:41:03.970182+00:00"
+    },
+    {
+      "role": "model",
+      "text": "No problem! It's \"eine Flasche.\" \"Eine Flasche\" means a bottle. How does that sound for you?",
+      "time": "2026-08-27T15:41:16.445804+00:00"
+    },
+    {
+      "role": "user",
+      "text": "Huh you have Aina flashavasa eina flasher means a bottle can you try saying that and keep up the great work can you repeat that please",
+      "time": "2026-08-27T15:41:18.196271+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Excellent! That's spot on! Now, do you want to know the word for the water inside? It's \"Wasser.\" Simple, right? So, \"eine Flasche Wasser.\" Wanna try the whole thing?",
+      "time": "2026-08-27T15:41:31.621971+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Exactly! You're a natural at this! Now you know how to say \"a bottle of water\" in German. Anything else around you you'd like to learn? Or maybe a different question?",
+      "time": "2026-08-27T15:41:44.078453+00:00"
+    },
+    {
+      "role": "model",
+      "text": "\"Stuhl,\" very good! That means \"a chair.\" \"Der Stuhl,\" if you want the article with it. You're picking up the words quickly! What else have you got there? Or are you ready for a new phrase?",
+      "time": "2026-08-27T15:41:58.490504+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Das Sofa! Excellent! You've got the pronunciation perfectly. And that actually means the sofa, so you're getting the word and the article right! See? You're making great progress. What's next on your list of things to learn?",
+      "time": "2026-08-27T15:42:16.751411+00:00"
+    },
+    {
+      "role": "model",
+      "text": "That would be \"das Kissen.\" Like \"the cushion\" or \"the pillow.\" How does that sound for you? \"Das Kissen.\" Try it!",
+      "time": "2026-08-27T15:42:28.158955+00:00"
+    },
+    {
+      "role": "model",
+      "text": "That's it! You've got it! \"Das Kissen.\" You're doing really well remembering these. Anything else you're showing me on your camera, or maybe a question about something totally different?",
+      "time": "2026-08-27T15:42:47.256557+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Right now, I can still see what you're showing me, so your camera is definitely on! Want to find another word for something in the room? What do you see now?",
+      "time": "2026-08-27T15:43:02.078096+00:00"
+    },
+    {
+      "role": "model",
+      "text": "As far as I can tell, it's still on. I can see a visual feed coming through. Is there something specific you're noticing that makes you wonder? Or should we keep learning some German?",
+      "time": "2026-08-27T15:43:16.695286+00:00"
+    },
+    {
+      "role": "user",
+      "text": "As far as I can tell it's still on I can see a visual feed coming through is there something specific you're noticing what do you see should we keep learning some German what do you see",
+      "time": "2026-08-27T15:43:25.754718+00:00"
+    }
+  ]
+}

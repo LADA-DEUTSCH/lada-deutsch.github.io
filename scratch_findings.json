@@ -1,0 +1,2234 @@
+{
+  "gender_rules": [
+    {
+      "source_num": 3,
+      "source_id": "ADiFsOVDrMQ",
+      "matched_terms": [
+        "suffix"
+      ],
+      "length": 10518
+    },
+    {
+      "source_num": 5,
+      "source_id": "EvY4w5136B8",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 12002
+    },
+    {
+      "source_num": 9,
+      "source_id": "TntALe8HpEw",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 9833
+    },
+    {
+      "source_num": 11,
+      "source_id": "HFW54r_iC7o",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 4261
+    },
+    {
+      "source_num": 16,
+      "source_id": "SEvvJEHXnkU",
+      "matched_terms": [
+        "suffix"
+      ],
+      "length": 15840
+    },
+    {
+      "source_num": 18,
+      "source_id": "Px9PSOhv1pY",
+      "matched_terms": [
+        "der die das"
+      ],
+      "length": 3070
+    },
+    {
+      "source_num": 23,
+      "source_id": "uhmFHWSs8B0",
+      "matched_terms": [
+        "masculine",
+        "feminine"
+      ],
+      "length": 27416
+    },
+    {
+      "source_num": 24,
+      "source_id": "TrUNyXfnf9Q",
+      "matched_terms": [
+        "masculine"
+      ],
+      "length": 2704
+    },
+    {
+      "source_num": 25,
+      "source_id": "PnUU8B8hQmU",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 19959
+    },
+    {
+      "source_num": 31,
+      "source_id": "-8KM3AxDhfk",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "neuter",
+        "ending",
+        "suffix"
+      ],
+      "length": 4688
+    },
+    {
+      "source_num": 32,
+      "source_id": "HdI4RMm0n1o",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "ending"
+      ],
+      "length": 2794
+    },
+    {
+      "source_num": 33,
+      "source_id": "ZIflTWvgqng",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "neuter",
+        "ending",
+        "suffix"
+      ],
+      "length": 9781
+    },
+    {
+      "source_num": 34,
+      "source_id": "WoDwBETzzv0",
+      "matched_terms": [
+        "masculine",
+        "feminine"
+      ],
+      "length": 3541
+    },
+    {
+      "source_num": 42,
+      "source_id": "aC1n9O5lBfU",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 8011
+    },
+    {
+      "source_num": 43,
+      "source_id": "CxSs57hjOsI",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 4346
+    },
+    {
+      "source_num": 44,
+      "source_id": "6EbDkKPVaac",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 5050
+    },
+    {
+      "source_num": 51,
+      "source_id": "hq1YpuX31Bw",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 7917
+    },
+    {
+      "source_num": 55,
+      "source_id": "Iwo13K8PhiE",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 4530
+    },
+    {
+      "source_num": 58,
+      "source_id": "6mHpknsUF4c",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 12460
+    },
+    {
+      "source_num": 63,
+      "source_id": "m9EZ9j3NHTI",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "neuter",
+        "ending"
+      ],
+      "length": 9631
+    },
+    {
+      "source_num": 64,
+      "source_id": "LJrvpLATOVg",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "neuter"
+      ],
+      "length": 13240
+    },
+    {
+      "source_num": 65,
+      "source_id": "fCYQ1WBTt-w",
+      "matched_terms": [
+        "der die das",
+        "masculine",
+        "feminine",
+        "neuter",
+        "ending"
+      ],
+      "length": 66015
+    },
+    {
+      "source_num": 68,
+      "source_id": "IFsEX4ZY6bc",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "neuter",
+        "ending",
+        "suffix"
+      ],
+      "length": 5903
+    },
+    {
+      "source_num": 72,
+      "source_id": "x_m9adGWWb0",
+      "matched_terms": [
+        "masculine",
+        "ending"
+      ],
+      "length": 40430
+    },
+    {
+      "source_num": 73,
+      "source_id": "ptwGd4v2pkI",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 10063
+    },
+    {
+      "source_num": 74,
+      "source_id": "BRRBI75hwzc",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "neuter",
+        "ending"
+      ],
+      "length": 54289
+    },
+    {
+      "source_num": 75,
+      "source_id": "qi9MnDgu-Rs",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 9717
+    },
+    {
+      "source_num": 76,
+      "source_id": "drq05Zcpz00",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 17934
+    },
+    {
+      "source_num": 79,
+      "source_id": "dZKaTLIKeMw",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 6445
+    },
+    {
+      "source_num": 80,
+      "source_id": "oDSrPrp07LE",
+      "matched_terms": [
+        "masculine",
+        "feminine"
+      ],
+      "length": 9640
+    },
+    {
+      "source_num": 84,
+      "source_id": "Tn1tma-bSZc",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "ending"
+      ],
+      "length": 9421
+    },
+    {
+      "source_num": 85,
+      "source_id": "pl1X-NUZ2uU",
+      "matched_terms": [
+        "masculine",
+        "feminine"
+      ],
+      "length": 9286
+    },
+    {
+      "source_num": 86,
+      "source_id": "cBi6EqUUFSI",
+      "matched_terms": [
+        "masculine",
+        "feminine",
+        "ending"
+      ],
+      "length": 9161
+    },
+    {
+      "source_num": 88,
+      "source_id": "3-TriSs1Yck",
+      "matched_terms": [
+        "masculine",
+        "feminine"
+      ],
+      "length": 12203
+    },
+    {
+      "source_num": 89,
+      "source_id": "OpvzujGKInI",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 17320
+    },
+    {
+      "source_num": 97,
+      "source_id": "7f9-txqJCGY",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 10219
+    },
+    {
+      "source_num": 98,
+      "source_id": "lH0RoIiFTlI",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 4334
+    },
+    {
+      "source_num": 100,
+      "source_id": "qbsRYUVSZ0s",
+      "matched_terms": [
+        "ending"
+      ],
+      "length": 8580
+    }
+  ],
+  "prepositions": [
+    {
+      "source_num": 16,
+      "source_id": "SEvvJEHXnkU",
+      "matched_terms": [
+        "dativ",
+        "accusative",
+        "dative"
+      ],
+      "length": 15840
+    },
+    {
+      "source_num": 17,
+      "source_id": "vaHJrXZA8uk",
+      "matched_terms": [
+        "dativ",
+        "dative"
+      ],
+      "length": 4165
+    },
+    {
+      "source_num": 18,
+      "source_id": "Px9PSOhv1pY",
+      "matched_terms": [
+        "accusative"
+      ],
+      "length": 3070
+    },
+    {
+      "source_num": 23,
+      "source_id": "uhmFHWSs8B0",
+      "matched_terms": [
+        "dativ",
+        "dative"
+      ],
+      "length": 27416
+    },
+    {
+      "source_num": 27,
+      "source_id": "5PnKzmTab-g",
+      "matched_terms": [
+        "dativ",
+        "accusative",
+        "dative"
+      ],
+      "length": 12804
+    },
+    {
+      "source_num": 42,
+      "source_id": "aC1n9O5lBfU",
+      "matched_terms": [
+        "dativ",
+        "accusative",
+        "dative"
+      ],
+      "length": 8011
+    },
+    {
+      "source_num": 63,
+      "source_id": "m9EZ9j3NHTI",
+      "matched_terms": [
+        "dativ",
+        "accusative",
+        "dative"
+      ],
+      "length": 9631
+    },
+    {
+      "source_num": 64,
+      "source_id": "LJrvpLATOVg",
+      "matched_terms": [
+        "dativ",
+        "accusative",
+        "dative"
+      ],
+      "length": 13240
+    },
+    {
+      "source_num": 65,
+      "source_id": "fCYQ1WBTt-w",
+      "matched_terms": [
+        "dativ",
+        "accusative",
+        "dative"
+      ],
+      "length": 66015
+    },
+    {
+      "source_num": 66,
+      "source_id": "SVC-kiRQLls",
+      "matched_terms": [
+        "dativ",
+        "accusative",
+        "dative"
+      ],
+      "length": 7097
+    },
+    {
+      "source_num": 72,
+      "source_id": "x_m9adGWWb0",
+      "matched_terms": [
+        "dativ",
+        "accusative",
+        "dative"
+      ],
+      "length": 40430
+    },
+    {
+      "source_num": 74,
+      "source_id": "BRRBI75hwzc",
+      "matched_terms": [
+        "accusative"
+      ],
+      "length": 54289
+    }
+  ],
+  "verbs_and_tenses": [
+    {
+      "source_num": 3,
+      "source_id": "ADiFsOVDrMQ",
+      "matched_terms": [
+        "prefix"
+      ],
+      "length": 10518
+    },
+    {
+      "source_num": 11,
+      "source_id": "HFW54r_iC7o",
+      "matched_terms": [
+        "prefix"
+      ],
+      "length": 4261
+    },
+    {
+      "source_num": 18,
+      "source_id": "Px9PSOhv1pY",
+      "matched_terms": [
+        "stehen",
+        "liegen"
+      ],
+      "length": 3070
+    },
+    {
+      "source_num": 33,
+      "source_id": "ZIflTWvgqng",
+      "matched_terms": [
+        "legen"
+      ],
+      "length": 9781
+    },
+    {
+      "source_num": 43,
+      "source_id": "CxSs57hjOsI",
+      "matched_terms": [
+        "sein"
+      ],
+      "length": 4346
+    },
+    {
+      "source_num": 44,
+      "source_id": "6EbDkKPVaac",
+      "matched_terms": [
+        "perfekt",
+        "sein"
+      ],
+      "length": 5050
+    },
+    {
+      "source_num": 59,
+      "source_id": "pKkyufapbAA",
+      "matched_terms": [
+        "sein"
+      ],
+      "length": 13170
+    },
+    {
+      "source_num": 65,
+      "source_id": "fCYQ1WBTt-w",
+      "matched_terms": [
+        "sein",
+        "prefix"
+      ],
+      "length": 66015
+    },
+    {
+      "source_num": 66,
+      "source_id": "SVC-kiRQLls",
+      "matched_terms": [
+        "prefix"
+      ],
+      "length": 7097
+    },
+    {
+      "source_num": 69,
+      "source_id": "y37XH4aQpvw",
+      "matched_terms": [
+        "prefix"
+      ],
+      "length": 9097
+    },
+    {
+      "source_num": 72,
+      "source_id": "x_m9adGWWb0",
+      "matched_terms": [
+        "prefix"
+      ],
+      "length": 40430
+    },
+    {
+      "source_num": 74,
+      "source_id": "BRRBI75hwzc",
+      "matched_terms": [
+        "prefix"
+      ],
+      "length": 54289
+    },
+    {
+      "source_num": 83,
+      "source_id": "Lonr9cTuTjY",
+      "matched_terms": [
+        "legen"
+      ],
+      "length": 8963
+    }
+  ],
+  "word_order": [
+    {
+      "source_num": 11,
+      "source_id": "HFW54r_iC7o",
+      "matched_terms": [
+        "subordinate",
+        "dass"
+      ],
+      "length": 4261
+    },
+    {
+      "source_num": 16,
+      "source_id": "SEvvJEHXnkU",
+      "matched_terms": [
+        "subordinate"
+      ],
+      "length": 15840
+    },
+    {
+      "source_num": 39,
+      "source_id": "PhAxC5BmcSs",
+      "matched_terms": [
+        "inversion"
+      ],
+      "length": 15469
+    },
+    {
+      "source_num": 44,
+      "source_id": "6EbDkKPVaac",
+      "matched_terms": [
+        "subordinate",
+        "weil"
+      ],
+      "length": 5050
+    },
+    {
+      "source_num": 50,
+      "source_id": "PYTgxJvsXAk",
+      "matched_terms": [
+        "subordinate"
+      ],
+      "length": 5002
+    },
+    {
+      "source_num": 63,
+      "source_id": "m9EZ9j3NHTI",
+      "matched_terms": [
+        "subordinate"
+      ],
+      "length": 9631
+    },
+    {
+      "source_num": 69,
+      "source_id": "y37XH4aQpvw",
+      "matched_terms": [
+        "subordinate"
+      ],
+      "length": 9097
+    },
+    {
+      "source_num": 74,
+      "source_id": "BRRBI75hwzc",
+      "matched_terms": [
+        "inversion",
+        "subordinate"
+      ],
+      "length": 54289
+    },
+    {
+      "source_num": 76,
+      "source_id": "drq05Zcpz00",
+      "matched_terms": [
+        "v2"
+      ],
+      "length": 17934
+    }
+  ],
+  "phonetics_pronunciation": [
+    {
+      "source_num": 3,
+      "source_id": "ADiFsOVDrMQ",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 10518
+    },
+    {
+      "source_num": 5,
+      "source_id": "EvY4w5136B8",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 12002
+    },
+    {
+      "source_num": 6,
+      "source_id": "ZcxAfRXBdSs",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 2883
+    },
+    {
+      "source_num": 8,
+      "source_id": "oqJwR6qOipY",
+      "matched_terms": [
+        "pronunciation",
+        "accent"
+      ],
+      "length": 8960
+    },
+    {
+      "source_num": 9,
+      "source_id": "TntALe8HpEw",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 9833
+    },
+    {
+      "source_num": 23,
+      "source_id": "uhmFHWSs8B0",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 27416
+    },
+    {
+      "source_num": 25,
+      "source_id": "PnUU8B8hQmU",
+      "matched_terms": [
+        "intonation"
+      ],
+      "length": 19959
+    },
+    {
+      "source_num": 39,
+      "source_id": "PhAxC5BmcSs",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 15469
+    },
+    {
+      "source_num": 53,
+      "source_id": "4ALZsFdtUUo",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 18253
+    },
+    {
+      "source_num": 54,
+      "source_id": "aqLM9utTYCo",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 3050
+    },
+    {
+      "source_num": 58,
+      "source_id": "6mHpknsUF4c",
+      "matched_terms": [
+        "accent"
+      ],
+      "length": 12460
+    },
+    {
+      "source_num": 59,
+      "source_id": "pKkyufapbAA",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 13170
+    },
+    {
+      "source_num": 62,
+      "source_id": "Aviudb8mmQw",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 3960
+    },
+    {
+      "source_num": 63,
+      "source_id": "m9EZ9j3NHTI",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 9631
+    },
+    {
+      "source_num": 65,
+      "source_id": "fCYQ1WBTt-w",
+      "matched_terms": [
+        "umlaut",
+        "accent"
+      ],
+      "length": 66015
+    },
+    {
+      "source_num": 72,
+      "source_id": "x_m9adGWWb0",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 40430
+    },
+    {
+      "source_num": 74,
+      "source_id": "BRRBI75hwzc",
+      "matched_terms": [
+        "pronunciation",
+        "umlaut",
+        "shadowing",
+        "accent"
+      ],
+      "length": 54289
+    },
+    {
+      "source_num": 75,
+      "source_id": "qi9MnDgu-Rs",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 9717
+    },
+    {
+      "source_num": 76,
+      "source_id": "drq05Zcpz00",
+      "matched_terms": [
+        "pronunciation",
+        "shadowing"
+      ],
+      "length": 17934
+    },
+    {
+      "source_num": 84,
+      "source_id": "Tn1tma-bSZc",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 9421
+    },
+    {
+      "source_num": 85,
+      "source_id": "pl1X-NUZ2uU",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 9286
+    },
+    {
+      "source_num": 89,
+      "source_id": "OpvzujGKInI",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 17320
+    },
+    {
+      "source_num": 92,
+      "source_id": "j5sim744zxY",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 6193
+    },
+    {
+      "source_num": 93,
+      "source_id": "lN9lG10G0Zk",
+      "matched_terms": [
+        "pronunciation"
+      ],
+      "length": 5058
+    },
+    {
+      "source_num": 99,
+      "source_id": "sFRXZJtMNGk",
+      "matched_terms": [
+        "accent"
+      ],
+      "length": 8646
+    },
+    {
+      "source_num": 100,
+      "source_id": "qbsRYUVSZ0s",
+      "matched_terms": [
+        "shadowing"
+      ],
+      "length": 8580
+    }
+  ],
+  "memory_srs": [
+    {
+      "source_num": 2,
+      "source_id": "gdKOXS5vqRA",
+      "matched_terms": [
+        "flashcard"
+      ],
+      "length": 14317
+    },
+    {
+      "source_num": 10,
+      "source_id": "ZiLgtuYXgYo",
+      "matched_terms": [
+        "flashcard"
+      ],
+      "length": 6510
+    },
+    {
+      "source_num": 21,
+      "source_id": "_bRYz02NNTU",
+      "matched_terms": [
+        "spaced repetition"
+      ],
+      "length": 12733
+    },
+    {
+      "source_num": 23,
+      "source_id": "uhmFHWSs8B0",
+      "matched_terms": [
+        "spaced repetition",
+        "anki"
+      ],
+      "length": 27416
+    },
+    {
+      "source_num": 25,
+      "source_id": "PnUU8B8hQmU",
+      "matched_terms": [
+        "anki",
+        "active recall"
+      ],
+      "length": 19959
+    },
+    {
+      "source_num": 28,
+      "source_id": "XJjbs6m65cA",
+      "matched_terms": [
+        "anki"
+      ],
+      "length": 4260
+    },
+    {
+      "source_num": 53,
+      "source_id": "4ALZsFdtUUo",
+      "matched_terms": [
+        "flashcard"
+      ],
+      "length": 18253
+    },
+    {
+      "source_num": 54,
+      "source_id": "aqLM9utTYCo",
+      "matched_terms": [
+        "spaced repetition",
+        "flashcard"
+      ],
+      "length": 3050
+    },
+    {
+      "source_num": 62,
+      "source_id": "Aviudb8mmQw",
+      "matched_terms": [
+        "spaced repetition",
+        "flashcard"
+      ],
+      "length": 3960
+    },
+    {
+      "source_num": 73,
+      "source_id": "ptwGd4v2pkI",
+      "matched_terms": [
+        "spaced repetition"
+      ],
+      "length": 10063
+    },
+    {
+      "source_num": 74,
+      "source_id": "BRRBI75hwzc",
+      "matched_terms": [
+        "flashcard"
+      ],
+      "length": 54289
+    },
+    {
+      "source_num": 78,
+      "source_id": "MzyVomPKNRo",
+      "matched_terms": [
+        "anki"
+      ],
+      "length": 9219
+    },
+    {
+      "source_num": 80,
+      "source_id": "oDSrPrp07LE",
+      "matched_terms": [
+        "anki",
+        "flashcard"
+      ],
+      "length": 9640
+    },
+    {
+      "source_num": 82,
+      "source_id": "nhs459FdBK0",
+      "matched_terms": [
+        "spaced repetition",
+        "flashcard"
+      ],
+      "length": 3654
+    },
+    {
+      "source_num": 83,
+      "source_id": "Lonr9cTuTjY",
+      "matched_terms": [
+        "anki",
+        "flashcard"
+      ],
+      "length": 8963
+    },
+    {
+      "source_num": 84,
+      "source_id": "Tn1tma-bSZc",
+      "matched_terms": [
+        "anki"
+      ],
+      "length": 9421
+    },
+    {
+      "source_num": 85,
+      "source_id": "pl1X-NUZ2uU",
+      "matched_terms": [
+        "anki"
+      ],
+      "length": 9286
+    },
+    {
+      "source_num": 86,
+      "source_id": "cBi6EqUUFSI",
+      "matched_terms": [
+        "anki"
+      ],
+      "length": 9161
+    },
+    {
+      "source_num": 87,
+      "source_id": "RF5P1giSEFM",
+      "matched_terms": [
+        "anki",
+        "active recall"
+      ],
+      "length": 16368
+    },
+    {
+      "source_num": 88,
+      "source_id": "3-TriSs1Yck",
+      "matched_terms": [
+        "anki"
+      ],
+      "length": 12203
+    },
+    {
+      "source_num": 89,
+      "source_id": "OpvzujGKInI",
+      "matched_terms": [
+        "spaced repetition",
+        "anki"
+      ],
+      "length": 17320
+    }
+  ],
+  "fillers_particles": [
+    {
+      "source_num": 2,
+      "source_id": "gdKOXS5vqRA",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 14317
+    },
+    {
+      "source_num": 3,
+      "source_id": "ADiFsOVDrMQ",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 10518
+    },
+    {
+      "source_num": 5,
+      "source_id": "EvY4w5136B8",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 12002
+    },
+    {
+      "source_num": 6,
+      "source_id": "ZcxAfRXBdSs",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 2883
+    },
+    {
+      "source_num": 8,
+      "source_id": "oqJwR6qOipY",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 8960
+    },
+    {
+      "source_num": 9,
+      "source_id": "TntALe8HpEw",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 9833
+    },
+    {
+      "source_num": 16,
+      "source_id": "SEvvJEHXnkU",
+      "matched_terms": [
+        "halt",
+        "mal"
+      ],
+      "length": 15840
+    },
+    {
+      "source_num": 17,
+      "source_id": "vaHJrXZA8uk",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 4165
+    },
+    {
+      "source_num": 21,
+      "source_id": "_bRYz02NNTU",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 12733
+    },
+    {
+      "source_num": 23,
+      "source_id": "uhmFHWSs8B0",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 27416
+    },
+    {
+      "source_num": 24,
+      "source_id": "TrUNyXfnf9Q",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 2704
+    },
+    {
+      "source_num": 25,
+      "source_id": "PnUU8B8hQmU",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 19959
+    },
+    {
+      "source_num": 26,
+      "source_id": "jcdWcLQv8B0",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 4335
+    },
+    {
+      "source_num": 27,
+      "source_id": "5PnKzmTab-g",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 12804
+    },
+    {
+      "source_num": 28,
+      "source_id": "XJjbs6m65cA",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 4260
+    },
+    {
+      "source_num": 31,
+      "source_id": "-8KM3AxDhfk",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 4688
+    },
+    {
+      "source_num": 33,
+      "source_id": "ZIflTWvgqng",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 9781
+    },
+    {
+      "source_num": 39,
+      "source_id": "PhAxC5BmcSs",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 15469
+    },
+    {
+      "source_num": 40,
+      "source_id": "Rj2_eX1bFcM",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 9164
+    },
+    {
+      "source_num": 41,
+      "source_id": "uijxxKjEAxY",
+      "matched_terms": [
+        "na ja",
+        "ja"
+      ],
+      "length": 1552
+    },
+    {
+      "source_num": 42,
+      "source_id": "aC1n9O5lBfU",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 8011
+    },
+    {
+      "source_num": 43,
+      "source_id": "CxSs57hjOsI",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 4346
+    },
+    {
+      "source_num": 44,
+      "source_id": "6EbDkKPVaac",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 5050
+    },
+    {
+      "source_num": 50,
+      "source_id": "PYTgxJvsXAk",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 5002
+    },
+    {
+      "source_num": 51,
+      "source_id": "hq1YpuX31Bw",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 7917
+    },
+    {
+      "source_num": 53,
+      "source_id": "4ALZsFdtUUo",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 18253
+    },
+    {
+      "source_num": 54,
+      "source_id": "aqLM9utTYCo",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 3050
+    },
+    {
+      "source_num": 55,
+      "source_id": "Iwo13K8PhiE",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 4530
+    },
+    {
+      "source_num": 57,
+      "source_id": "2-VUOiLbuQg",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 4133
+    },
+    {
+      "source_num": 58,
+      "source_id": "6mHpknsUF4c",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 12460
+    },
+    {
+      "source_num": 59,
+      "source_id": "pKkyufapbAA",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 13170
+    },
+    {
+      "source_num": 63,
+      "source_id": "m9EZ9j3NHTI",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 9631
+    },
+    {
+      "source_num": 64,
+      "source_id": "LJrvpLATOVg",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 13240
+    },
+    {
+      "source_num": 65,
+      "source_id": "fCYQ1WBTt-w",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 66015
+    },
+    {
+      "source_num": 68,
+      "source_id": "IFsEX4ZY6bc",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 5903
+    },
+    {
+      "source_num": 69,
+      "source_id": "y37XH4aQpvw",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 9097
+    },
+    {
+      "source_num": 70,
+      "source_id": "J1EhsIacwEg",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 5074
+    },
+    {
+      "source_num": 72,
+      "source_id": "x_m9adGWWb0",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 40430
+    },
+    {
+      "source_num": 73,
+      "source_id": "ptwGd4v2pkI",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 10063
+    },
+    {
+      "source_num": 74,
+      "source_id": "BRRBI75hwzc",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 54289
+    },
+    {
+      "source_num": 76,
+      "source_id": "drq05Zcpz00",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 17934
+    },
+    {
+      "source_num": 78,
+      "source_id": "MzyVomPKNRo",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 9219
+    },
+    {
+      "source_num": 84,
+      "source_id": "Tn1tma-bSZc",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 9421
+    },
+    {
+      "source_num": 85,
+      "source_id": "pl1X-NUZ2uU",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 9286
+    },
+    {
+      "source_num": 86,
+      "source_id": "cBi6EqUUFSI",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 9161
+    },
+    {
+      "source_num": 88,
+      "source_id": "3-TriSs1Yck",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 12203
+    },
+    {
+      "source_num": 89,
+      "source_id": "OpvzujGKInI",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 17320
+    },
+    {
+      "source_num": 93,
+      "source_id": "lN9lG10G0Zk",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 5058
+    },
+    {
+      "source_num": 96,
+      "source_id": "vLtRQO80Ofk",
+      "matched_terms": [
+        "mal",
+        "ja"
+      ],
+      "length": 6145
+    },
+    {
+      "source_num": 98,
+      "source_id": "lH0RoIiFTlI",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 4334
+    },
+    {
+      "source_num": 99,
+      "source_id": "sFRXZJtMNGk",
+      "matched_terms": [
+        "mal"
+      ],
+      "length": 8646
+    },
+    {
+      "source_num": 100,
+      "source_id": "qbsRYUVSZ0s",
+      "matched_terms": [
+        "ja"
+      ],
+      "length": 8580
+    }
+  ],
+  "contractions": [
+    {
+      "source_num": 2,
+      "source_id": "gdKOXS5vqRA",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 14317
+    },
+    {
+      "source_num": 3,
+      "source_id": "ADiFsOVDrMQ",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 10518
+    },
+    {
+      "source_num": 5,
+      "source_id": "EvY4w5136B8",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 12002
+    },
+    {
+      "source_num": 6,
+      "source_id": "ZcxAfRXBdSs",
+      "matched_terms": [
+        "im",
+        "am",
+        "ins"
+      ],
+      "length": 2883
+    },
+    {
+      "source_num": 7,
+      "source_id": "5ktQgcgDN74",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 5136
+    },
+    {
+      "source_num": 8,
+      "source_id": "oqJwR6qOipY",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 8960
+    },
+    {
+      "source_num": 9,
+      "source_id": "TntALe8HpEw",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9833
+    },
+    {
+      "source_num": 10,
+      "source_id": "ZiLgtuYXgYo",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 6510
+    },
+    {
+      "source_num": 11,
+      "source_id": "HFW54r_iC7o",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 4261
+    },
+    {
+      "source_num": 16,
+      "source_id": "SEvvJEHXnkU",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 15840
+    },
+    {
+      "source_num": 17,
+      "source_id": "vaHJrXZA8uk",
+      "matched_terms": [
+        "im",
+        "am",
+        "ins"
+      ],
+      "length": 4165
+    },
+    {
+      "source_num": 18,
+      "source_id": "Px9PSOhv1pY",
+      "matched_terms": [
+        "im",
+        "am",
+        "ins"
+      ],
+      "length": 3070
+    },
+    {
+      "source_num": 21,
+      "source_id": "_bRYz02NNTU",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 12733
+    },
+    {
+      "source_num": 22,
+      "source_id": "5KxYzGPedRc",
+      "matched_terms": [
+        "am"
+      ],
+      "length": 405
+    },
+    {
+      "source_num": 23,
+      "source_id": "uhmFHWSs8B0",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 27416
+    },
+    {
+      "source_num": 24,
+      "source_id": "TrUNyXfnf9Q",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 2704
+    },
+    {
+      "source_num": 25,
+      "source_id": "PnUU8B8hQmU",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 19959
+    },
+    {
+      "source_num": 26,
+      "source_id": "jcdWcLQv8B0",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 4335
+    },
+    {
+      "source_num": 27,
+      "source_id": "5PnKzmTab-g",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 12804
+    },
+    {
+      "source_num": 28,
+      "source_id": "XJjbs6m65cA",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 4260
+    },
+    {
+      "source_num": 31,
+      "source_id": "-8KM3AxDhfk",
+      "matched_terms": [
+        "im",
+        "am",
+        "zum",
+        "ins"
+      ],
+      "length": 4688
+    },
+    {
+      "source_num": 32,
+      "source_id": "HdI4RMm0n1o",
+      "matched_terms": [
+        "im",
+        "am",
+        "zum"
+      ],
+      "length": 2794
+    },
+    {
+      "source_num": 33,
+      "source_id": "ZIflTWvgqng",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9781
+    },
+    {
+      "source_num": 34,
+      "source_id": "WoDwBETzzv0",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 3541
+    },
+    {
+      "source_num": 37,
+      "source_id": "FMztjuYalsc",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 2882
+    },
+    {
+      "source_num": 39,
+      "source_id": "PhAxC5BmcSs",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 15469
+    },
+    {
+      "source_num": 40,
+      "source_id": "Rj2_eX1bFcM",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 9164
+    },
+    {
+      "source_num": 41,
+      "source_id": "uijxxKjEAxY",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 1552
+    },
+    {
+      "source_num": 42,
+      "source_id": "aC1n9O5lBfU",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 8011
+    },
+    {
+      "source_num": 43,
+      "source_id": "CxSs57hjOsI",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 4346
+    },
+    {
+      "source_num": 44,
+      "source_id": "6EbDkKPVaac",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 5050
+    },
+    {
+      "source_num": 50,
+      "source_id": "PYTgxJvsXAk",
+      "matched_terms": [
+        "im",
+        "am",
+        "ins"
+      ],
+      "length": 5002
+    },
+    {
+      "source_num": 51,
+      "source_id": "hq1YpuX31Bw",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 7917
+    },
+    {
+      "source_num": 53,
+      "source_id": "4ALZsFdtUUo",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 18253
+    },
+    {
+      "source_num": 54,
+      "source_id": "aqLM9utTYCo",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 3050
+    },
+    {
+      "source_num": 55,
+      "source_id": "Iwo13K8PhiE",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 4530
+    },
+    {
+      "source_num": 56,
+      "source_id": "0G_qnF2rx20",
+      "matched_terms": [
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 3381
+    },
+    {
+      "source_num": 57,
+      "source_id": "2-VUOiLbuQg",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 4133
+    },
+    {
+      "source_num": 58,
+      "source_id": "6mHpknsUF4c",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 12460
+    },
+    {
+      "source_num": 59,
+      "source_id": "pKkyufapbAA",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 13170
+    },
+    {
+      "source_num": 62,
+      "source_id": "Aviudb8mmQw",
+      "matched_terms": [
+        "im",
+        "ans",
+        "ins"
+      ],
+      "length": 3960
+    },
+    {
+      "source_num": 63,
+      "source_id": "m9EZ9j3NHTI",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9631
+    },
+    {
+      "source_num": 64,
+      "source_id": "LJrvpLATOVg",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 13240
+    },
+    {
+      "source_num": 65,
+      "source_id": "fCYQ1WBTt-w",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 66015
+    },
+    {
+      "source_num": 66,
+      "source_id": "SVC-kiRQLls",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 7097
+    },
+    {
+      "source_num": 68,
+      "source_id": "IFsEX4ZY6bc",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 5903
+    },
+    {
+      "source_num": 69,
+      "source_id": "y37XH4aQpvw",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9097
+    },
+    {
+      "source_num": 70,
+      "source_id": "J1EhsIacwEg",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 5074
+    },
+    {
+      "source_num": 72,
+      "source_id": "x_m9adGWWb0",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 40430
+    },
+    {
+      "source_num": 73,
+      "source_id": "ptwGd4v2pkI",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans"
+      ],
+      "length": 10063
+    },
+    {
+      "source_num": 74,
+      "source_id": "BRRBI75hwzc",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 54289
+    },
+    {
+      "source_num": 75,
+      "source_id": "qi9MnDgu-Rs",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9717
+    },
+    {
+      "source_num": 76,
+      "source_id": "drq05Zcpz00",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 17934
+    },
+    {
+      "source_num": 78,
+      "source_id": "MzyVomPKNRo",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9219
+    },
+    {
+      "source_num": 79,
+      "source_id": "dZKaTLIKeMw",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 6445
+    },
+    {
+      "source_num": 80,
+      "source_id": "oDSrPrp07LE",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9640
+    },
+    {
+      "source_num": 82,
+      "source_id": "nhs459FdBK0",
+      "matched_terms": [
+        "im",
+        "am",
+        "ins"
+      ],
+      "length": 3654
+    },
+    {
+      "source_num": 83,
+      "source_id": "Lonr9cTuTjY",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 8963
+    },
+    {
+      "source_num": 84,
+      "source_id": "Tn1tma-bSZc",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9421
+    },
+    {
+      "source_num": 85,
+      "source_id": "pl1X-NUZ2uU",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9286
+    },
+    {
+      "source_num": 86,
+      "source_id": "cBi6EqUUFSI",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 9161
+    },
+    {
+      "source_num": 87,
+      "source_id": "RF5P1giSEFM",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 16368
+    },
+    {
+      "source_num": 88,
+      "source_id": "3-TriSs1Yck",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 12203
+    },
+    {
+      "source_num": 89,
+      "source_id": "OpvzujGKInI",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 17320
+    },
+    {
+      "source_num": 92,
+      "source_id": "j5sim744zxY",
+      "matched_terms": [
+        "im",
+        "am",
+        "ins"
+      ],
+      "length": 6193
+    },
+    {
+      "source_num": 93,
+      "source_id": "lN9lG10G0Zk",
+      "matched_terms": [
+        "im",
+        "am",
+        "ins"
+      ],
+      "length": 5058
+    },
+    {
+      "source_num": 96,
+      "source_id": "vLtRQO80Ofk",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 6145
+    },
+    {
+      "source_num": 97,
+      "source_id": "7f9-txqJCGY",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 10219
+    },
+    {
+      "source_num": 98,
+      "source_id": "lH0RoIiFTlI",
+      "matched_terms": [
+        "im",
+        "am",
+        "ins"
+      ],
+      "length": 4334
+    },
+    {
+      "source_num": 99,
+      "source_id": "sFRXZJtMNGk",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 8646
+    },
+    {
+      "source_num": 100,
+      "source_id": "qbsRYUVSZ0s",
+      "matched_terms": [
+        "im",
+        "am",
+        "ans",
+        "ins"
+      ],
+      "length": 8580
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "session_id": "S20260903_222958",
+  "timestamp": "2026-09-03T21:33:14.912864+00:00",
+  "turns_count": 6,
+  "transcript": [
+    {
+      "role": "model",
+      "text": "Hey Bilal... working late tonight, huh? Everything good?",
+      "time": "2026-09-03T21:30:03.767178+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, my mistake! You want a spot in Casa for free. Honestly, for free, that's tough. Your best bet is probably self-study online... or, you know, you've got me right here for practice. What do you think?",
+      "time": "2026-09-03T21:30:48.694339+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Maybe just rearranging your room could help? Or going to a quiet cafe sometimes, even if it's not for free, just for that change of scenery. Do any of those sound doable?",
+      "time": "2026-09-03T21:31:19.363274+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Fair enough, cafes can get pricey. What about parks or even just sitting outside somewhere when the weather is nice? Could that be a little change of pace?",
+      "time": "2026-09-03T21:31:30.461892+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Alright, new things it is! Looks like you've got your German alphabet notes there. I also see that nice wooden table you're working on—that's 'der Tisch' in German. Are you practicing pronunciation?",
+      "time": "2026-09-03T21:31:56.716208+00:00"
+    },
+    {
+      "role": "model",
+      "text": "My bad! Right now I see the close-up of your notebook with the alphabet written out. Looks like you've even got pronunciation notes there, like 'beh' for 'B'... and I can see you've drawn a box for the 'Umlaute'. So, which letter are you working on?",
+      "time": "2026-09-03T21:32:14.689312+00:00"
+    }
+  ]
+}

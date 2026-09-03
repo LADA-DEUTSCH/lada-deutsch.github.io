@@ -1,0 +1,375 @@
+{
+  "version": "2.1",
+  "skills": {
+    "gender_suffix_prediction": {
+      "id": "gender_suffix_prediction",
+      "name": "Noun Gender Prediction via Suffix Heuristics",
+      "level": "A0",
+      "description": "Predicting gender based on morphological suffixes (-ung/-heit/-keit=die, -ment/-um=das, -ich/-ig=der)",
+      "prerequisites": []
+    },
+    "article_automaticity": {
+      "id": "article_automaticity",
+      "name": "Definite Article Rapid Recall",
+      "level": "A0",
+      "description": "Instant subconscious retrieval of der/die/das within <1.2 seconds",
+      "prerequisites": ["gender_suffix_prediction"]
+    },
+    "spoken_contractions": {
+      "id": "spoken_contractions",
+      "name": "Preposition-Article Street Contractions",
+      "level": "A1",
+      "description": "Mastering spoken blends: im (in dem), am (an dem), ins (in das), ans (an das), aufs (auf das), fürs (für das), beim (bei dem), vom (von dem), zum (zu dem), zur (zu der)",
+      "prerequisites": ["article_automaticity"]
+    },
+    "spatial_case_contrast": {
+      "id": "spatial_case_contrast",
+      "name": "Two-Way Preposition Spatial Contrast (Wohin vs. Wo)",
+      "level": "A1",
+      "description": "Distinguishing dynamic movement (Akkusativ) from static rest (Dativ) with Wechselpräpositionen",
+      "prerequisites": ["article_automaticity"]
+    },
+    "verb_pairing_movement_static": {
+      "id": "verb_pairing_movement_static",
+      "name": "Positional Verb Pairing (stellen/stehen, legen/liegen)",
+      "level": "A1",
+      "description": "Connecting causal action verbs (stellen + Akk) with resultant state verbs (stehen + Dat)",
+      "prerequisites": ["spatial_case_contrast"]
+    },
+    "sentence_lengthener_templates": {
+      "id": "sentence_lengthener_templates",
+      "name": "The 4 Sentence-Lengthener Syntactic Templates",
+      "level": "A1",
+      "description": "Rapid multi-clause sentence generation: Opinion (Ich finde, dass...), Need/Action (Ich möchte...), Habit (Jeden Tag...), Spatial (X steht neben Y)",
+      "prerequisites": ["verb_pairing_movement_static"]
+    },
+    "v2_word_order_inversion": {
+      "id": "v2_word_order_inversion",
+      "name": "Verb-Second Word Order & Adverbial Inversion",
+      "level": "A1",
+      "description": "Strict verb-in-position-2 rule; subject inverts to position 3 when time/place starts the clause",
+      "prerequisites": ["sentence_lengthener_templates"]
+    },
+    "am_progressive": {
+      "id": "am_progressive",
+      "name": "The am-Progressive Continuous Trigger",
+      "level": "A2",
+      "description": "Expressing ongoing continuous actions using sein + am + nominalized verb (Ich bin am Arbeiten)",
+      "prerequisites": ["v2_word_order_inversion"]
+    },
+    "ver_prefix_code": {
+      "id": "ver_prefix_code",
+      "name": "Tri-Fold VER- Prefix Semantic Code",
+      "level": "B1",
+      "description": "Mastering the 3 VER- meanings: Error (sich verfahren, sich versprechen), Transformation (verbessern, verändern), Disappearance (verlieren, verschwinden)",
+      "prerequisites": ["am_progressive"]
+    },
+    "tekamolo_sequencing": {
+      "id": "tekamolo_sequencing",
+      "name": "TEKAMOLO Adverbial Sequencing",
+      "level": "B2",
+      "description": "Temporal (Wann?) -> Kausal (Warum?) -> Modal (Wie?) -> Lokal (Wo/Wohin?) ordering in complex clauses",
+      "prerequisites": ["ver_prefix_code"]
+    }
+  },
+  "suffix_matrix": {
+    "feminine_die": {
+      "suffixes": ["-ung", "-heit", "-keit", "-schaft", "-tät", "-ur", "-ion", "-ie", "-ei", "-ik", "-in"],
+      "accuracy": ">95%",
+      "color": "Red"
+    },
+    "neuter_das": {
+      "suffixes": ["-ment", "-um", "-chen", "-lein", "-tum", "-ma", "-nis"],
+      "accuracy": ">95%",
+      "color": "Green"
+    },
+    "masculine_der": {
+      "suffixes": ["-ich", "-ig", "-ling", "-or", "-ismus", "-ist", "-ant", "-ent", "-er (agents)"],
+      "accuracy": ">85%",
+      "color": "Blue"
+    }
+  },
+  "street_contractions": [
+    {"formal": "in dem", "spoken": "im", "case": "Dativ", "gender": "masculine/neuter"},
+    {"formal": "an dem", "spoken": "am", "case": "Dativ", "gender": "masculine/neuter"},
+    {"formal": "in das", "spoken": "ins", "case": "Akkusativ", "gender": "neuter"},
+    {"formal": "an das", "spoken": "ans", "case": "Akkusativ", "gender": "neuter"},
+    {"formal": "auf das", "spoken": "aufs", "case": "Akkusativ", "gender": "neuter"},
+    {"formal": "für das", "spoken": "fürs", "case": "Akkusativ", "gender": "neuter"},
+    {"formal": "bei dem", "spoken": "beim", "case": "Dativ", "gender": "masculine/neuter"},
+    {"formal": "von dem", "spoken": "vom", "case": "Dativ", "gender": "masculine/neuter"},
+    {"formal": "zu dem", "spoken": "zum", "case": "Dativ", "gender": "masculine/neuter"},
+    {"formal": "zu der", "spoken": "zur", "case": "Dativ", "gender": "feminine"}
+  ],
+  "sentence_templates": {
+    "template_a_opinion": {
+      "structure": "Ich finde, dass [Subject] [Adjective] ist.",
+      "example": "Ich finde, dass der Bildschirm groß ist."
+    },
+    "template_b_need": {
+      "structure": "Ich möchte [Object] [Verb Infinitive].",
+      "example": "Ich möchte das Glas auf den Tisch stellen."
+    },
+    "template_c_habit": {
+      "structure": "Jeden Tag [Verb V2] ich [Object].",
+      "example": "Jeden Tag benutze ich die Tastatur."
+    },
+    "template_d_spatial": {
+      "structure": "[Object A] [Verb V2] neben/auf [Object B].",
+      "example": "Das Buch liegt neben der Lampe."
+    }
+  },
+  "phonetics": {
+    "ich_laut": {
+      "symbol": "/ç/",
+      "triggers": ["-ig", "ich", "nicht", "Bücher", "Küche", "Mädchen"],
+      "rule": "Soft whispering cat sound after e, i, ä, ö, ü, ei, eu."
+    },
+    "ach_laut": {
+      "symbol": "/x/",
+      "triggers": ["Buch", "Kuchen", "machen", "doch", "Sprache"],
+      "rule": "Deep throat friction sound after a, o, u, au."
+    },
+    "uvular_r": {
+      "symbol": "/ʁ/",
+      "triggers": ["Rot", "Regen", "Schrank", "Türe"],
+      "rule": "Gentle back-of-the-mouth gargle vibration."
+    }
+  },
+  "vocabulary": [
+    {
+      "id": "tisch",
+      "lemma": "Tisch",
+      "article": "der",
+      "plural": "die Tische",
+      "meaning": "table",
+      "gender": "masculine",
+      "color_anchor": "blue",
+      "context": "desk",
+      "prerequisites": []
+    },
+    {
+      "id": "stuhl",
+      "lemma": "Stuhl",
+      "article": "der",
+      "plural": "die Stühle",
+      "meaning": "chair",
+      "gender": "masculine",
+      "color_anchor": "blue",
+      "context": "desk",
+      "prerequisites": []
+    },
+    {
+      "id": "bildschirm",
+      "lemma": "Bildschirm",
+      "article": "der",
+      "plural": "die Bildschirme",
+      "meaning": "screen/monitor",
+      "gender": "masculine",
+      "color_anchor": "blue",
+      "context": "desk",
+      "prerequisites": []
+    },
+    {
+      "id": "stift",
+      "lemma": "Stift",
+      "article": "der",
+      "plural": "die Stifte",
+      "meaning": "pen/pencil",
+      "gender": "masculine",
+      "color_anchor": "blue",
+      "context": "desk",
+      "prerequisites": []
+    },
+    {
+      "id": "schrank",
+      "lemma": "Schrank",
+      "article": "der",
+      "plural": "die Schränke",
+      "meaning": "cupboard/closet",
+      "gender": "masculine",
+      "color_anchor": "blue",
+      "context": "living_room",
+      "prerequisites": []
+    },
+    {
+      "id": "kuehlschrank",
+      "lemma": "Kühlschrank",
+      "article": "der",
+      "plural": "die Kühlschränke",
+      "meaning": "refrigerator",
+      "gender": "masculine",
+      "color_anchor": "blue",
+      "context": "kitchen",
+      "prerequisites": ["schrank"]
+    },
+    {
+      "id": "tastatur",
+      "lemma": "Tastatur",
+      "article": "die",
+      "plural": "die Tastaturen",
+      "meaning": "keyboard",
+      "gender": "feminine",
+      "color_anchor": "red",
+      "suffix_heuristic": "-ur",
+      "context": "desk",
+      "prerequisites": []
+    },
+    {
+      "id": "maus",
+      "lemma": "Maus",
+      "article": "die",
+      "plural": "die Mäuse",
+      "meaning": "mouse",
+      "gender": "feminine",
+      "color_anchor": "red",
+      "context": "desk",
+      "prerequisites": []
+    },
+    {
+      "id": "lampe",
+      "lemma": "Lampe",
+      "article": "die",
+      "plural": "die Lampen",
+      "meaning": "lamp",
+      "gender": "feminine",
+      "color_anchor": "red",
+      "suffix_heuristic": "-e",
+      "context": "living_room",
+      "prerequisites": []
+    },
+    {
+      "id": "tuer",
+      "lemma": "Tür",
+      "article": "die",
+      "plural": "die Türen",
+      "meaning": "door",
+      "gender": "feminine",
+      "color_anchor": "red",
+      "context": "living_room",
+      "prerequisites": []
+    },
+    {
+      "id": "tasse",
+      "lemma": "Tasse",
+      "article": "die",
+      "plural": "die Tassen",
+      "meaning": "cup/mug",
+      "gender": "feminine",
+      "color_anchor": "red",
+      "suffix_heuristic": "-e",
+      "context": "kitchen",
+      "prerequisites": []
+    },
+    {
+      "id": "flasche",
+      "lemma": "Flasche",
+      "article": "die",
+      "plural": "die Flaschen",
+      "meaning": "bottle",
+      "gender": "feminine",
+      "color_anchor": "red",
+      "suffix_heuristic": "-e",
+      "context": "kitchen",
+      "prerequisites": []
+    },
+    {
+      "id": "glas",
+      "lemma": "Glas",
+      "article": "das",
+      "plural": "die Gläser",
+      "meaning": "glass",
+      "gender": "neuter",
+      "color_anchor": "green",
+      "context": "kitchen",
+      "prerequisites": []
+    },
+    {
+      "id": "buch",
+      "lemma": "Buch",
+      "article": "das",
+      "plural": "die Bücher",
+      "meaning": "book",
+      "gender": "neuter",
+      "color_anchor": "green",
+      "context": "desk",
+      "prerequisites": []
+    },
+    {
+      "id": "sofa",
+      "lemma": "Sofa",
+      "article": "das",
+      "plural": "die Sofas",
+      "meaning": "sofa/couch",
+      "gender": "neuter",
+      "color_anchor": "green",
+      "context": "living_room",
+      "prerequisites": []
+    },
+    {
+      "id": "fenster",
+      "lemma": "Fenster",
+      "article": "das",
+      "plural": "die Fenster",
+      "meaning": "window",
+      "gender": "neuter",
+      "color_anchor": "green",
+      "context": "living_room",
+      "prerequisites": []
+    },
+    {
+      "id": "dokument",
+      "lemma": "Dokument",
+      "article": "das",
+      "plural": "die Dokumente",
+      "meaning": "document",
+      "gender": "neuter",
+      "color_anchor": "green",
+      "suffix_heuristic": "-ment",
+      "context": "desk",
+      "prerequisites": []
+    }
+  ],
+  "preposition_rules": {
+    "auf": {
+      "type": "two_way",
+      "meaning": "on / on top of (horizontal surface)",
+      "akkusativ_trigger": "movement / direction (Wohin?)",
+      "dativ_trigger": "static location / rest (Wo?)",
+      "contractions": {
+        "akkusativ_neuter": "aufs (auf das)",
+        "dativ_masculine": "auf dem",
+        "dativ_neuter": "auf dem"
+      }
+    },
+    "an": {
+      "type": "two_way",
+      "meaning": "at / on (vertical surface or boundary)",
+      "akkusativ_trigger": "movement towards (Wohin?)",
+      "dativ_trigger": "static location at (Wo?)",
+      "contractions": {
+        "akkusativ_neuter": "ans (an das)",
+        "dativ_masculine": "am (an dem)",
+        "dativ_neuter": "am (an dem)"
+      }
+    },
+    "in": {
+      "type": "two_way",
+      "meaning": "in / inside (enclosed space)",
+      "akkusativ_trigger": "movement into (Wohin?)",
+      "dativ_trigger": "location inside (Wo?)",
+      "contractions": {
+        "akkusativ_neuter": "ins (in das)",
+        "dativ_masculine": "im (in dem)",
+        "dativ_neuter": "im (in dem)"
+      }
+    },
+    "neben": {
+      "type": "two_way",
+      "meaning": "next to / beside",
+      "akkusativ_trigger": "movement next to (Wohin?)",
+      "dativ_trigger": "location next to (Wo?)",
+      "contractions": {}
+    }
+  }
+}

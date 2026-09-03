@@ -1,0 +1,22 @@
+{
+  "session_id": "S20260827_204738",
+  "timestamp": "2026-08-27T19:48:29.159485+00:00",
+  "turns_count": 3,
+  "transcript": [
+    {
+      "role": "model",
+      "text": "Hey there! I'm so happy we're hanging out again to practice your German! Ready for a quick review? Let's see if you remember: what do we call a cup in German? Think back to last time!",
+      "time": "2026-08-27T19:47:50.539773+00:00"
+    },
+    {
+      "role": "model",
+      "text": "No worries! It's totally fine. It's die Tasse. Can you say that with me? Die Tasse. Now, what's that patterned thing behind you? Is that a mousepad? [interrupted]",
+      "time": "2026-08-27T19:48:01.831779+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Of course! What's on your mind? You can ask me anything, in English or even in Darija if you prefer! What are you curious about?",
+      "time": "2026-08-27T19:48:15.837143+00:00"
+    }
+  ]
+}

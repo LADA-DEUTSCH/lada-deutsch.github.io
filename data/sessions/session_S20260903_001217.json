@@ -1,0 +1,212 @@
+{
+  "session_id": "S20260903_001217",
+  "timestamp": "2026-09-02T23:22:21.383997+00:00",
+  "turns_count": 41,
+  "transcript": [
+    {
+      "role": "model",
+      "text": "Hey Bilal! [interrupted]",
+      "time": "2026-09-02T23:12:18.965449+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Hey, welcome back! Good to see you again. How's your day going? Hey, really quick, do you remember what we called that beautiful rug in your room last time? You had to work on that tricky 'ch' sound, remember? What was that word again?",
+      "time": "2026-09-02T23:12:37.375731+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Exactly! It's der Teppich. Good job remembering that sound! And wow, those are some cool colors on your keyboard - purple and blue! In German, we'd say: die Tastatur. Can you try saying that? die Tastatur.",
+      "time": "2026-09-02T23:12:59.045144+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Alright, let's keep going! So, you've got your mouse and keyboard there. Is there anything else on your desk that you want to learn in German? Or maybe something in the rest of the room? Just point your camera at it! [interrupted]",
+      "time": "2026-09-02T23:13:37.071309+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, good question! The floor, we call it \"der Boden\". Can you try saying that? \"Der Boden\". And the roof, that's \"das Dach\". What do you think? [interrupted]",
+      "time": "2026-09-02T23:13:48.313395+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Perfect! Der Boden. And the roof, or ceiling inside, is die Decke. How about that one? Die Decke.",
+      "time": "2026-09-02T23:13:59.835243+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, das ist \"das Dach\", for the roof outside! My bad. Good catch! So, we have \"der Boden\" for the floor, and \"das Dach\" for the roof outside. Got it? Anything else on your mind? [interrupted]",
+      "time": "2026-09-02T23:14:13.176016+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Exactly! So, \"der Boden\" for the floor, [interrupted]",
+      "time": "2026-09-02T23:14:15.440426+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Correct, \"das Dach\" is the part outside. And for the inside ceiling, [interrupted]",
+      "time": "2026-09-02T23:14:25.256707+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, inside the room, the ceiling is \"die Decke\". So, \"das Dach\" outside, and \"die Decke\" inside. Makes sense? We're getting some good vocab practice done! Anything else you're curious about? [interrupted]",
+      "time": "2026-09-02T23:14:36.853382+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Perfect! Exactly, \"die Decke\". You've got those down now. Feeling like trying some more, or maybe just chatting a bit?",
+      "time": "2026-09-02T23:14:48.216700+00:00"
+    },
+    {
+      "role": "model",
+      "text": "The floor, that's \"der Boden\". You remember how to pronounce that properly, right? With that nice short German 'a' sound. [interrupted]",
+      "time": "2026-09-02T23:15:03.634987+00:00"
+    },
+    {
+      "role": "model",
+      "text": "That's it, \"der Boden\". What else are you wondering about? We're making great progress!",
+      "time": "2026-09-02T23:15:11.127970+00:00"
+    },
+    {
+      "role": "model",
+      "text": "\"Der Fernseher\", you mean the TV? That's \"der Fernseher\". Can you repeat that? \"Der Fernseher\". You're doing great adding new words! [interrupted]",
+      "time": "2026-09-02T23:15:29.122817+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, okay, you actually meant \"the window\"! My mistake. That's \"das Fenster\". Can you say that one? \"Das Fenster\". [interrupted]",
+      "time": "2026-09-02T23:15:38.802560+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Perfect! Das Fenster. You're getting [interrupted]",
+      "time": "2026-09-02T23:15:40.572004+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Almost! So, \"das Fenster\" is one window. The plural, for more than one, would be \"die Fenster\". Notice the article changes, but the word stays the same for that one! Does that make sense? [interrupted]",
+      "time": "2026-09-02T23:15:55.336384+00:00"
+    },
+    {
+      "role": "model",
+      "text": "You're totally [interrupted]",
+      "time": "2026-09-02T23:16:06.243629+00:00"
+    },
+    {
+      "role": "model",
+      "text": "You're totally right, Bilal! My bad. Tschuldigung, let's get back to German! So, das Fenster, plural die Fenster. Alles klar? Did you want to try a sentence with that? [interrupted]",
+      "time": "2026-09-02T23:16:13.676084+00:00"
+    },
+    {
+      "role": "model",
+      "text": "You can just call me your personal companion or friend! There's no special name for me. Was möchtest du noch wissen? What else would you like to know? We were talking about the window. [interrupted]",
+      "time": "2026-09-02T23:16:26.976065+00:00"
+    },
+    {
+      "role": "model",
+      "text": "We were talking about \"das Fenster\", the window. Anything else you see around you that you want to learn? Maybe the desk itself? \"Der Tisch\". Or that water bottle nearby? \"Eine Flasche Wasser\". [interrupted]",
+      "time": "2026-09-02T23:16:31.851463+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, about that? You can call me an AI companion, or a language partner, whatever feels natural! Aber, was möchtest du lieber machen? Shall we find another word to learn on your desk? What about that pen you're holding? That's \"der Stift\". [interrupted]",
+      "time": "2026-09-02T23:16:44.562238+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ja, Bilal? Was gibt es? You want to keep practicing German, or talk about something else?",
+      "time": "2026-09-02T23:16:51.232379+00:00"
+    },
+    {
+      "role": "model",
+      "text": "That means \"What's up?\" or \"What's going on?\" It's just a casual way to ask. So, Bilal, was gibt es? Was möchtest du machen? What do you want to do? [interrupted]",
+      "time": "2026-09-02T23:17:04.875387+00:00"
+    },
+    {
+      "role": "model",
+      "text": "So, Bilal, was gibt es bei dir? What's up with you? Anything you're thinking [interrupted]",
+      "time": "2026-09-02T23:17:07.602172+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Genau! What's up? Anything on your mind, or would you like to learn some more German words? We could talk about your colorful keyboard again, \"die Tastatur\". Or maybe something else you see on your desk? [interrupted]",
+      "time": "2026-09-02T23:17:13.580337+00:00"
+    },
+    {
+      "role": "model",
+      "text": "\"Genau\" just means \"exactly\" or \"precisely\" in German. It's a word we use a lot to agree or confirm things. Anything else you want to know about it? [interrupted]",
+      "time": "2026-09-02T23:17:22.814172+00:00"
+    },
+    {
+      "role": "model",
+      "text": "So, Bilal, what's up now? Was gibt es noch? You want to practice some more vocabulary?",
+      "time": "2026-09-02T23:17:29.811766+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Hmm, a name like what? You've got [interrupted]",
+      "time": "2026-09-02T23:17:38.907136+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Oh, like a title? \"Savior\"... in German, we could say \"der Heiler\" or \"der Retter\". That sounds pretty grand! Or maybe something from Darija? What do you think? [interrupted]",
+      "time": "2026-09-02T23:17:47.481623+00:00"
+    },
+    {
+      "role": "model",
+      "text": "\"Savior\" in German would be \"der Retter\". That's the word we have for someone who saves someone. So, what do you think about that, Bilal? \"Der Retter\"? [interrupted]",
+      "time": "2026-09-02T23:17:53.683045+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, okay! In English, \"savior\" means someone who rescues someone or something from danger, harm, or destruction. Does that make sense? So, you're thinking of a name like that for me? [interrupted]",
+      "time": "2026-09-02T23:18:04.831044+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Well, since we're learning German, you could call me \"der Retter,\" though that might sound a bit grand! Or if you want something from Moroccan Darija, we say \"lmou3in,\" which means \"the helper\" or \"assistant,\" and that's kind of a nice way to think about it, right? Which sounds better to you? [interrupted]",
+      "time": "2026-09-02T23:18:28.735902+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Understood! You want ten options. Okay, challenge accepted! You've got \"der Retter\" in German. Then there's \"Salvatore\" in Italian, \"Sauveur\" in French, \"Sotir\" in Greek, \"Rakshak\" in Hindi, \"Pelastaja\" in Finnish, \"Räddare\" in Swedish, \"Liberator\" in Latin, \"Hayat Sanrakshak\" in Nepali, and \"Mugindzi\" in Swahili. Which one sounds best for me?",
+      "time": "2026-09-02T23:19:14.992131+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Hey, still here! You're asking specifically for great German names for 'savior'? We already discussed \"der Retter.\" Maybe \"der Helfer\" – that means \"the helper\" – or \"der Beschützer,\" which means \"the protector?\" Those are strong words too. Do any of those work for you? [interrupted]",
+      "time": "2026-09-02T23:19:59.913228+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Hey, still here! Sorry, I might have missed your question. You were asking about \"der Retter\" and if there are other great names in German, right? We could find something more symbolic like \"Held,\" which means \"hero,\" or \"Wächter\" for \"guardian.\" What do you think of those? Deutsch hat viele Wörter! [interrupted]",
+      "time": "2026-09-02T23:20:18.490529+00:00"
+    },
+    {
+      "role": "model",
+      "text": "We could find something like \"der Beschützer,\" which means \"protector,\" or maybe \"der Helfer,\" \"the helper.\" Does that sound better than \"der Retter\"?",
+      "time": "2026-09-02T23:20:33.708513+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Short names, got it! How about \"Fey\" from French, meaning \"faith,\" or \"Pax\" from Latin for \"peace\"? Or in Japanese, maybe \"Ren,\" meaning \"lotus\"? Are those any better? [interrupted]",
+      "time": "2026-09-02T23:21:10.629862+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Ah, nur Deutsch! Okay. How about \"Mut,\" meaning \"courage,\" or \"Held,\" meaning \"hero\"? Both are very short! Do either of those sound better?",
+      "time": "2026-09-02T23:21:31.206234+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Okay, Bilal, you want a brilliant name! How about \"der Schild\"? That means \"shield.\" Or maybe \"der Blitz\" for \"lightning\"? Do either of those sound more like what you're looking for? [interrupted]",
+      "time": "2026-09-02T23:21:53.363010+00:00"
+    },
+    {
+      "role": "model",
+      "text": "Hmm, okay, you want something that sounds more masculine or just different. How about \"der Fels\"? That means \"rock\" or \"cliff.\" It's strong and short. Does that one work? [interrupted]",
+      "time": "2026-09-02T23:22:12.020939+00:00"
+    }
+  ]
+}

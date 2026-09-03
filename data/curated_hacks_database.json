@@ -1,0 +1,332 @@
+{
+  "gender_prediction_matrix": {
+    "feminine_die_red": {
+      "suffixes": [
+        "-ung",
+        "-heit",
+        "-keit",
+        "-schaft",
+        "-tät",
+        "-ur",
+        "-ion",
+        "-ie",
+        "-ei",
+        "-ik",
+        "-in",
+        "-anz",
+        "-enz"
+      ],
+      "probability": ">95%",
+      "visual_anchor": "Red / Wonder Woman / Dynamic female superhero",
+      "examples": [
+        {
+          "word": "die Zeitung",
+          "suffix": "-ung",
+          "meaning": "newspaper"
+        },
+        {
+          "word": "die Freiheit",
+          "suffix": "-heit",
+          "meaning": "freedom"
+        },
+        {
+          "word": "die Möglichkeit",
+          "suffix": "-keit",
+          "meaning": "possibility"
+        },
+        {
+          "word": "die Tastatur",
+          "suffix": "-ur",
+          "meaning": "keyboard"
+        },
+        {
+          "word": "die Nation",
+          "suffix": "-ion",
+          "meaning": "nation"
+        },
+        {
+          "word": "die Datei",
+          "suffix": "-ei",
+          "meaning": "data file"
+        }
+      ],
+      "heuristic_rule": "Nouns ending in -e (two-syllables) are ~80% feminine (die Lampe, die Tasche, die Tasse, die Straße, die Flasche)."
+    },
+    "neuter_das_green": {
+      "suffixes": [
+        "-ment",
+        "-um",
+        "-chen",
+        "-lein",
+        "-tum",
+        "-ma",
+        "-nis"
+      ],
+      "probability": ">95%",
+      "visual_anchor": "Green / Hulk / Solid inert material or diminutive",
+      "examples": [
+        {
+          "word": "das Dokument",
+          "suffix": "-ment",
+          "meaning": "document"
+        },
+        {
+          "word": "das Zentrum",
+          "suffix": "-um",
+          "meaning": "center"
+        },
+        {
+          "word": "das Mädchen",
+          "suffix": "-chen",
+          "meaning": "girl (diminutive)"
+        },
+        {
+          "word": "das Brötchen",
+          "suffix": "-chen",
+          "meaning": "bread roll"
+        },
+        {
+          "word": "das Glas",
+          "suffix": "material",
+          "meaning": "glass"
+        },
+        {
+          "word": "das Essen",
+          "suffix": "nominalized verb",
+          "meaning": "the food/eating"
+        }
+      ],
+      "heuristic_rule": "All nominalized infinitives (das Essen, das Trinken, das Leben) and open-vowel loanwords (das Sofa, das Auto, das Foto) take DAS."
+    },
+    "masculine_der_blue": {
+      "suffixes": [
+        "-er (agents)",
+        "-or",
+        "-ismus",
+        "-ist",
+        "-ant",
+        "-ent",
+        "-ling",
+        "-ich",
+        "-ig"
+      ],
+      "probability": ">85%",
+      "visual_anchor": "Blue / Superman / Male agent or concrete tool",
+      "examples": [
+        {
+          "word": "der Computer",
+          "suffix": "-er",
+          "meaning": "computer"
+        },
+        {
+          "word": "der Motor",
+          "suffix": "-or",
+          "meaning": "motor/engine"
+        },
+        {
+          "word": "der Optimismus",
+          "suffix": "-ismus",
+          "meaning": "optimism"
+        },
+        {
+          "word": "der Teppich",
+          "suffix": "-ich",
+          "meaning": "carpet"
+        },
+        {
+          "word": "der Honig",
+          "suffix": "-ig",
+          "meaning": "honey"
+        },
+        {
+          "word": "der Schmetterling",
+          "suffix": "-ling",
+          "meaning": "butterfly"
+        }
+      ],
+      "heuristic_rule": "Days of the week (der Montag), months (der Januar), seasons (der Sommer), compass directions (der Norden), and weather phenomena (der Regen, der Wind) are 100% DER."
+    }
+  },
+  "preposition_rhymes_and_shortcuts": {
+    "dative_cadence": {
+      "song_prepositions": [
+        "aus",
+        "bei",
+        "mit",
+        "nach",
+        "seit",
+        "von",
+        "zu",
+        "ab",
+        "gegenüber"
+      ],
+      "cadence_hack": "Chanted to the melody of 'The Blue Danube' or rhythmic cadence: 'aus-bei-mit-nach-seit-von-zu'",
+      "case_rule": "ALWAYS Dative (dem/der/dem/den + -n), regardless of movement."
+    },
+    "accusative_rhyme": {
+      "prepositions": [
+        "bis",
+        "durch",
+        "für",
+        "gegen",
+        "ohne",
+        "um",
+        "entlang"
+      ],
+      "mnemonic": "D-O-G-F-U-B (Durch, Ohne, Gegen, Für, Um, Bis)",
+      "case_rule": "ALWAYS Accusative (den/die/das/die), regardless of location."
+    },
+    "two_way_prepositions_triad": {
+      "list": [
+        "an",
+        "auf",
+        "hinter",
+        "in",
+        "neben",
+        "über",
+        "unter",
+        "vor",
+        "zwischen"
+      ],
+      "wohin_trigger": "Movement / Target / Direction ➔ AKKUSATIV (Akkusativ = Action)",
+      "wo_trigger": "Static Location / Rest / State ➔ DATIV (Dativ = Dot / Der Ort / Rest)",
+      "spatial_verbs": {
+        "dynamic": [
+          "stellen (upright)",
+          "legen (flat)",
+          "setzen (sitting)",
+          "hängen (active hang)"
+        ],
+        "static": [
+          "stehen (upright)",
+          "liegen (flat)",
+          "sitzen (sitting)",
+          "hängen (passive hang)"
+        ]
+      }
+    },
+    "temporal_triad": {
+      "AM": "Days (am Montag), Dates (am 1. Mai), Day-parts (am Morgen, am Abend) [Exception: in der Nacht]",
+      "IM": "Months (im Juli), Seasons (im Sommer), Years (im Jahr 2026)",
+      "UM": "Precise clock times (um 14:00 Uhr, um Viertel vor acht)"
+    }
+  },
+  "syntax_and_word_order_hacks": {
+    "v2_and_inversion_trick": {
+      "rule": "The finite conjugated verb is glued to POSITION 2 in main clauses.",
+      "inversion": "If you start with Time, Place, or Object in Position 1 ➔ Subject flips to Position 3!",
+      "formula": "[Element 1] + [VERB] + [SUBJECT] + ...",
+      "example_normal": "Ich [1] trinke [2] heute [3] Kaffee.",
+      "example_inverted": "Heute [1] trinke [2] ich [3] Kaffee."
+    },
+    "tekamolo_rule": {
+      "full_name": "Temporal ➔ Kausal ➔ Modal ➔ Lokal",
+      "formula": "TE (Wann?) ➔ KA (Warum?) ➔ MO (Wie?) ➔ LO (Wo/Wohin?)",
+      "example": "Ich fahre heute (TE) wegen des Regens (KA) mit dem Bus (MO) zur Arbeit (LO)."
+    },
+    "am_progressive_hack": {
+      "hack": "Expresses ongoing '-ing' actions without complex tenses (vernacular German continuous).",
+      "formula": "sein + am + [Nominalisiertes Verb]",
+      "examples": [
+        "Ich bin am Arbeiten. (I am working right now)",
+        "Er ist am Kochen. (He is cooking right now)",
+        "Wir sind am Lernen. (We are learning right now)"
+      ]
+    },
+    "sentence_lengthener_templates": {
+      "opinion_frame": "Ich finde, dass [Subject] [Object] [Adjective] ist.",
+      "need_action_frame": "Ich möchte [Object] [Verb Infinitive].",
+      "habit_anchor_frame": "Jeden Tag [Verb V2] ich [Object].",
+      "spatial_anchor_frame": "[Object A] [Verb V2] neben/auf [Object B]."
+    }
+  },
+  "spoken_contractions_and_phonetics": {
+    "street_contractions": [
+      {
+        "formal": "habe ich",
+        "spoken": "hab ich / hab's"
+      },
+      {
+        "formal": "hast du",
+        "spoken": "hastu"
+      },
+      {
+        "formal": "wie geht es dir",
+        "spoken": "wie geht's dir"
+      },
+      {
+        "formal": "an dem",
+        "spoken": "am"
+      },
+      {
+        "formal": "in dem",
+        "spoken": "im"
+      },
+      {
+        "formal": "in das",
+        "spoken": "ins"
+      },
+      {
+        "formal": "an das",
+        "spoken": "ans"
+      },
+      {
+        "formal": "auf das",
+        "spoken": "aufs"
+      },
+      {
+        "formal": "für das",
+        "spoken": "fürs"
+      },
+      {
+        "formal": "zu dem",
+        "spoken": "zum"
+      },
+      {
+        "formal": "zu der",
+        "spoken": "zur"
+      },
+      {
+        "formal": "bei dem",
+        "spoken": "beim"
+      },
+      {
+        "formal": "von dem",
+        "spoken": "vom"
+      }
+    ],
+    "phonetic_keys": {
+      "ich_laut": "Soft /ç/ after e, i, ä, ö, ü, ei, eu (tongue touches molars, soft hissing cat sound: 'ich', 'nicht', 'Bücher').",
+      "ach_laut": "Hard /x/ after a, o, u, au (throat scraping: 'Buch', 'machen', 'doch').",
+      "uvular_r": "Produced in back of throat like gentle gargling with water, or vocalized /ɐ/ at end of syllables ('Wasser' -> 'Wassa').",
+      "glottal_stop": "Knacklaut — tiny micro-pause before vowels starting a root word (e.g. 'be-achten', 'Spiegel-ei')."
+    },
+    "modal_particles_fillers": [
+      {
+        "particle": "na ja",
+        "function": "Soft hedge / hesitation bridge ('well... / kind of')"
+      },
+      {
+        "particle": "halt / eben",
+        "function": "Accepting reality / 'that's just how it is'"
+      },
+      {
+        "particle": "mal",
+        "function": "Softens commands politely ('Schau mal!', 'Sag mal!')"
+      },
+      {
+        "particle": "eigentlich",
+        "function": "Actually / By the way / In reality"
+      },
+      {
+        "particle": "doch",
+        "function": "Contradicting a negative ('Doch, das stimmt!') or emphasis"
+      }
+    ]
+  },
+  "pedagogical_algorithms": {
+    "micro_srs_2_7_15": "Failed items are dynamically re-prompted within the session at: 2 minutes (immediate cloze), 7 minutes (embedded in sentence frame), and 15 minutes (session close rapid-fire quiz).",
+    "active_ratio_60_40": "The learner must produce at least 60% of spoken words. AI responses are strictly limited to prompts under 15 words.",
+    "dual_memory_loop": "Every session concludes with the Physical Notebook Protocol (Human Handwriting + Read Aloud + Post-Writing Retrieval)."
+  }
+}

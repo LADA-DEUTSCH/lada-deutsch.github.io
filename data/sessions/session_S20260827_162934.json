@@ -1,0 +1,17 @@
+{
+  "session_id": "S20260827_162934",
+  "timestamp": "2026-08-27T15:30:11.694384+00:00",
+  "turns_count": 2,
+  "transcript": [
+    {
+      "role": "user",
+      "text": "Hello hello",
+      "time": "2026-08-27T15:29:38.807789+00:00"
+    },
+    {
+      "role": "user",
+      "text": "I'm super happy to chat with you I'm your personal language companion here to help you learn German while we hang out and speaking of German let's start with a basic one hello it just means hi simple as that want to give it a try",
+      "time": "2026-08-27T15:29:58.663941+00:00"
+    }
+  ]
+}
