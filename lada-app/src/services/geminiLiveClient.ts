@@ -148,12 +148,10 @@ export class GeminiLiveClient {
 
     this.sendJson({
       realtimeInput: {
-        mediaChunks: [
-          {
-            mimeType: 'audio/pcm;rate=16000',
-            data: base64Pcm16
-          }
-        ]
+        audio: {
+          mimeType: 'audio/pcm;rate=16000',
+          data: base64Pcm16
+        }
       }
     });
   }
@@ -163,12 +161,10 @@ export class GeminiLiveClient {
 
     this.sendJson({
       realtimeInput: {
-        mediaChunks: [
-          {
-            mimeType: 'image/jpeg',
-            data: base64Jpeg
-          }
-        ]
+        video: {
+          mimeType: 'image/jpeg',
+          data: base64Jpeg
+        }
       }
     });
   }
