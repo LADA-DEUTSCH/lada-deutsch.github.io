@@ -1,5 +1,7 @@
 export type VoiceName = 'Kore' | 'Aoede' | 'Fenrir' | 'Puck' | 'Charon';
 
+export type BridgeLanguageMode = 'german_only' | 'german_darija' | 'german_english';
+
 export interface KeyStatus {
   index: number;
   maskedKey: string;
@@ -70,11 +72,47 @@ export interface SessionTurn {
   timestamp: string;
 }
 
-export interface SessionRecap {
-  sessionId: string;
-  timestamp: string;
-  summary: string;
+export interface TimelineVerb {
+  german: string;
+  english: string;
+  darija: string;
+  example: string;
+}
+
+export interface TimelineChapter {
+  id: string;
+  number: number;
+  title: string;
+  subtitle: string;
+  setting: string;
+  scenarioPrompt: string;
+  verbs: TimelineVerb[];
+  completed: boolean;
+}
+
+export interface CallHistoryItem {
+  id: string;
+  date: string;
+  durationSeconds: number;
+  chapterTitle: string;
   turnsCount: number;
+  turns: SessionTurn[];
+  wordsAcquired: string[];
+  summary: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  timestamp: string;
+}
+
+export interface ChatThread {
+  id: string;
+  title: string;
+  messages: ChatMessage[];
+  updatedAt: string;
 }
 
 export interface LearnerProfile {
@@ -82,13 +120,8 @@ export interface LearnerProfile {
   targetLanguage: string;
   nativeLanguage: string;
   totalSessions: number;
+  bridgeMode: BridgeLanguageMode;
+  activeChapterId: string;
   personalFacts: PersonalFact[];
   vocabulary: SRSItem[];
-  sessionHistory: SessionRecap[];
-}
-
-export interface GeminiLiveConfig {
-  apiKey: string;
-  voiceName: VoiceName;
-  systemPrompt: string;
 }

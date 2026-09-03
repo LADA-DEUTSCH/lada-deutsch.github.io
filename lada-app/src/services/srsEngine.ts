@@ -1,4 +1,4 @@
-import type { LearnerProfile, SRSItem, SessionRecap } from '../types';
+import type { LearnerProfile, SRSItem } from '../types';
 
 const PROFILE_STORAGE_KEY = 'lada_learner_profile_v1';
 
@@ -7,6 +7,8 @@ export const INITIAL_BILAL_PROFILE: LearnerProfile = {
   targetLanguage: 'German',
   nativeLanguage: 'Moroccan Darija / English',
   totalSessions: 13,
+  bridgeMode: 'german_darija',
+  activeChapterId: 'chapter_morning',
   personalFacts: [
     { id: 'f1', category: 'Environment', fact: 'Has a desk setup with laptop, mouse, and mousepad', dateLearned: '2026-08-27' },
     { id: 'f2', category: 'Routine', fact: 'Loves Moroccan tea (berrad / die Teekanne)', dateLearned: '2026-08-27' },
@@ -20,9 +22,6 @@ export const INITIAL_BILAL_PROFILE: LearnerProfile = {
     { id: 'v4', german: 'Tastatur', article: 'die', english: 'keyboard', category: 'noun', intervalDays: 3, nextReviewDate: new Date().toISOString(), timesReviewed: 3, struggleCount: 0 },
     { id: 'v5', german: 'Wasserflasche', article: 'die', english: 'water bottle', category: 'noun', intervalDays: 1, nextReviewDate: new Date().toISOString(), timesReviewed: 2, struggleCount: 0 },
     { id: 'v6', german: 'Fernseher', article: 'der', english: 'TV', category: 'noun', intervalDays: 7, nextReviewDate: new Date().toISOString(), timesReviewed: 3, struggleCount: 0 }
-  ],
-  sessionHistory: [
-    { sessionId: 'S13', timestamp: '2026-09-03T01:12:00Z', summary: 'Late night desk conversation about tea, mouse glow, and study spots in Casablanca.', turnsCount: 6 }
   ]
 };
 
@@ -71,12 +70,5 @@ export function recordWordReview(wordId: string, remembered: boolean): void {
   nextDate.setDate(nextDate.getDate() + item.intervalDays);
   item.nextReviewDate = nextDate.toISOString();
 
-  saveProfile(profile);
-}
-
-export function recordSession(recap: SessionRecap): void {
-  const profile = loadProfile();
-  profile.totalSessions += 1;
-  profile.sessionHistory.push(recap);
   saveProfile(profile);
 }
