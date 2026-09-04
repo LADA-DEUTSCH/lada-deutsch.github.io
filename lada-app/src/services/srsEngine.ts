@@ -9,6 +9,7 @@ export const INITIAL_BILAL_PROFILE: LearnerProfile = {
   totalSessions: 13,
   bridgeMode: 'german_darija',
   activeChapterId: 'chapter_morning',
+  a1ProgressPercent: 14,
   personalFacts: [
     { id: 'f1', category: 'Environment', fact: 'Has a desk setup with laptop, mouse, and mousepad', dateLearned: '2026-08-27' },
     { id: 'f2', category: 'Routine', fact: 'Loves Moroccan tea (berrad / die Teekanne)', dateLearned: '2026-08-27' },

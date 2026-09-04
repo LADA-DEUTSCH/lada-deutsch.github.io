@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Phone, MessageSquare, Compass, ChevronRight, Play } from 'lucide-react';
-import type { CallHistoryItem, TimelineChapter } from '../types';
+import { Phone, MessageSquare, Compass, ChevronRight, Play, Sparkles } from 'lucide-react';
+import type { CallHistoryItem, TimelineChapter, LearnerProfile } from '../types';
 import { loadCallHistory, loadChatThreads } from '../services/historyStorage';
 import { getChapters } from '../services/timelineEngine';
 import { highlightGermanSyntax } from '../services/syntaxHighlighter';
 
 interface HistoryHubProps {
+  profile: LearnerProfile;
   onResumeChapter: (chapter: TimelineChapter) => void;
 }
 
 export const HistoryHub: React.FC<HistoryHubProps> = ({
+  profile,
   onResumeChapter
 }) => {
   const [tab, setTab] = useState<'chapters' | 'calls' | 'chats'>('chapters');
@@ -38,8 +40,39 @@ export const HistoryHub: React.FC<HistoryHubProps> = ({
       }}>
         <h1 style={{ fontSize: '17px', fontWeight: 800, margin: 0 }}>Story & Progress Hub</h1>
         <p style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>
-          Select your story chapter or review past call transcripts and words.
+          Select your story chapter or review AI-analyzed progress and acquired words.
         </p>
+
+        {/* Real Spoken German CEFR Meter */}
+        <div style={{
+          marginTop: '12px',
+          background: 'rgba(15, 23, 42, 0.75)',
+          border: '1px solid rgba(56, 189, 248, 0.25)',
+          borderRadius: '14px',
+          padding: '10px 14px'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Sparkles size={14} color="#38bdf8" />
+              <span style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                CEFR Spoken Mastery
+              </span>
+            </div>
+            <span style={{ fontSize: '12px', fontWeight: 800, color: '#34d399' }}>
+              Level A1.1 · {profile.a1ProgressPercent || 14}%
+            </span>
+          </div>
+          <div style={{ width: '100%', height: '7px', background: 'rgba(255, 255, 255, 0.08)', borderRadius: '4px', overflow: 'hidden' }}>
+            <div style={{
+              width: `${Math.min(100, profile.a1ProgressPercent || 14)}%`,
+              height: '100%',
+              background: 'linear-gradient(90deg, #0ea5e9, #34d399)',
+              borderRadius: '4px',
+              boxShadow: '0 0 10px rgba(52, 211, 153, 0.5)',
+              transition: 'width 0.8s ease'
+            }} />
+          </div>
+        </div>
 
         {/* Tab Switcher */}
         <div style={{
@@ -214,7 +247,7 @@ export const HistoryHub: React.FC<HistoryHubProps> = ({
           </div>
         )}
 
-        {/* TAB 2: CALL LOGS & TRANSCRIPTS */}
+        {/* TAB 2: CALL LOGS & AI DEBRIEF */}
         {tab === 'calls' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {selectedCall ? (
@@ -236,8 +269,41 @@ export const HistoryHub: React.FC<HistoryHubProps> = ({
                   </span>
                 </div>
 
-                <h3 style={{ fontSize: '15px', fontWeight: 800, marginBottom: '4px' }}>{selectedCall.chapterTitle}</h3>
-                <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '12px' }}>{selectedCall.summary}</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 800, margin: 0 }}>{selectedCall.chapterTitle}</h3>
+                  {selectedCall.analysis && (
+                    <span style={{
+                      background: 'rgba(52, 211, 153, 0.15)',
+                      color: '#34d399',
+                      border: '1px solid rgba(52, 211, 153, 0.3)',
+                      padding: '2px 8px',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: 800
+                    }}>
+                      A1: {selectedCall.analysis.a1ProgressPercent}%
+                    </span>
+                  )}
+                </div>
+
+                <p style={{ fontSize: '13px', color: '#f8fafc', margin: '8px 0', lineHeight: '1.4' }}>
+                  {selectedCall.analysis?.cleanSummary || selectedCall.summary}
+                </p>
+
+                {/* Pronunciation Feedback Pill */}
+                {selectedCall.analysis?.pronunciationFeedback && (
+                  <div style={{
+                    background: 'rgba(250, 204, 21, 0.1)',
+                    border: '1px solid rgba(250, 204, 21, 0.25)',
+                    borderRadius: '10px',
+                    padding: '8px 12px',
+                    marginBottom: '12px',
+                    fontSize: '12px',
+                    color: '#fef08a'
+                  }}>
+                    <strong>🗣️ Coach:</strong> {selectedCall.analysis.pronunciationFeedback}
+                  </div>
+                )}
 
                 {/* Acquired Words */}
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
@@ -254,7 +320,7 @@ export const HistoryHub: React.FC<HistoryHubProps> = ({
                         fontWeight: 700
                       }}
                     >
-                      {w}
+                      ✓ {w}
                     </span>
                   ))}
                 </div>
@@ -297,15 +363,31 @@ export const HistoryHub: React.FC<HistoryHubProps> = ({
                     cursor: 'pointer'
                   }}
                 >
-                  <div>
+                  <div style={{ flex: 1, paddingRight: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                       <span style={{ fontSize: '14px', fontWeight: 800, color: '#fff' }}>{call.chapterTitle}</span>
-                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>· {Math.round(call.durationSeconds / 60)} min</span>
+                      <span style={{ fontSize: '11px', color: '#64748b' }}>·</span>
+                      <span style={{ fontSize: '11px', color: '#94a3b8' }}>{Math.round(call.durationSeconds / 60)} min</span>
+                      {call.analysis && (
+                        <span style={{
+                          marginLeft: 'auto',
+                          background: 'rgba(52, 211, 153, 0.15)',
+                          color: '#34d399',
+                          fontSize: '10px',
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: '6px'
+                        }}>
+                          A1: {call.analysis.a1ProgressPercent}%
+                        </span>
+                      )}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>{call.summary}</div>
+                    <div style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '6px' }}>
+                      {call.analysis?.cleanSummary || call.summary}
+                    </div>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                       {call.wordsAcquired.map((w, idx) => (
-                        <span key={idx} style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '6px', padding: '2px 6px', fontSize: '10px', color: '#cbd5e1' }}>
+                        <span key={idx} style={{ background: 'rgba(255, 255, 255, 0.05)', borderRadius: '6px', padding: '2px 6px', fontSize: '10px', color: '#bae6fd' }}>
                           {w}
                         </span>
                       ))}

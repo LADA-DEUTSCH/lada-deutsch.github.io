@@ -90,6 +90,15 @@ export interface TimelineChapter {
   completed: boolean;
 }
 
+export interface ScribeAnalysis {
+  a1ProgressPercent: number;
+  wordsAcquired: string[];
+  struggledWith: string[];
+  pronunciationFeedback: string;
+  cleanSummary: string;
+  nextSuggestedVerb: string;
+}
+
 export interface CallHistoryItem {
   id: string;
   date: string;
@@ -99,6 +108,7 @@ export interface CallHistoryItem {
   turns: SessionTurn[];
   wordsAcquired: string[];
   summary: string;
+  analysis?: ScribeAnalysis;
 }
 
 export interface ChatMessage {
@@ -122,6 +132,7 @@ export interface LearnerProfile {
   totalSessions: number;
   bridgeMode: BridgeLanguageMode;
   activeChapterId: string;
+  a1ProgressPercent: number;
   personalFacts: PersonalFact[];
   vocabulary: SRSItem[];
 }

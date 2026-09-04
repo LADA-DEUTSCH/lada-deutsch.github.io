@@ -24,6 +24,7 @@ import { inspectTextForStageEvents } from '../services/cognitiveCoPilot';
 import { getActiveChapter, setChapterActive } from '../services/timelineEngine';
 import { addCallRecord } from '../services/historyStorage';
 import { highlightGermanSyntax } from '../services/syntaxHighlighter';
+import { analyzeSessionWithNeuralScribe } from '../services/neuralScribe';
 import { GenerativeStage } from './GenerativeStage';
 import { SettingsDrawer } from './SettingsDrawer';
 import { TextChatStudio } from './TextChatStudio';
@@ -321,21 +322,37 @@ export const LiveCompanion: React.FC<LiveCompanionProps> = ({
       geminiClientRef.current.disconnect();
     }
 
-    // Save session record into history hub
+    // Save session record with Key #6 Neural Scribe
     if (sessionTurnsCountRef.current > 0) {
       const duration = Math.max(15, Math.round((Date.now() - callStartTimeRef.current) / 1000));
-      const acquired = activeChapter.verbs.slice(0, 3).map(v => v.german);
+      const turnsToAnalyze = [...currentSessionTurnsRef.current];
+      const scribeKey = apiKeys[5] || apiKeys[0]; // Dedicated Key #6
 
-      addCallRecord({
-        id: `call_${Date.now()}`,
-        date: new Date().toISOString(),
-        durationSeconds: duration,
-        chapterTitle: activeChapter.title,
-        turnsCount: sessionTurnsCountRef.current,
-        turns: [...currentSessionTurnsRef.current],
-        wordsAcquired: acquired,
-        summary: `Story practice in ${activeChapter.title} (${activeChapter.subtitle}). Focus on verbs: ${acquired.join(', ')}.`
-      });
+      analyzeSessionWithNeuralScribe(scribeKey, turnsToAnalyze, activeChapter, profile.a1ProgressPercent || 14)
+        .then((analysis) => {
+          addCallRecord({
+            id: `call_${Date.now()}`,
+            date: new Date().toISOString(),
+            durationSeconds: duration,
+            chapterTitle: activeChapter.title,
+            turnsCount: sessionTurnsCountRef.current,
+            turns: turnsToAnalyze,
+            wordsAcquired: analysis.wordsAcquired,
+            summary: analysis.cleanSummary,
+            analysis
+          });
+
+          // Update learner profile with updated CEFR A1 progression
+          const updatedProfile: LearnerProfile = {
+            ...profile,
+            totalSessions: profile.totalSessions + 1,
+            a1ProgressPercent: analysis.a1ProgressPercent
+          };
+          onProfileUpdate(updatedProfile);
+        })
+        .catch((err) => {
+          console.warn('Neural Scribe error:', err);
+        });
 
       sessionTurnsCountRef.current = 0;
       currentSessionTurnsRef.current = [];
@@ -740,6 +757,7 @@ export const LiveCompanion: React.FC<LiveCompanionProps> = ({
         {activeTab === 'history' && (
           <div style={{ width: '100%', height: '100%' }}>
             <HistoryHub
+              profile={profile}
               onResumeChapter={handleResumeChapter}
             />
           </div>
