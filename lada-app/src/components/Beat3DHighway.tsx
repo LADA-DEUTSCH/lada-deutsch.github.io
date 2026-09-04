@@ -13,7 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import type { SongDefinition, GameDifficultyLevel, SongLyricItem } from '../types';
-import { RhythmAudioEngine } from '../services/rhythmAudioEngine';
+import { MusicSynthEngine } from '../services/musicSynthEngine';
 import { VoiceRater } from '../services/voiceRater';
 import { recordLevelResult, getSongProgress } from '../services/gameProgressStorage';
 
@@ -75,7 +75,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
   } | null>(null);
 
   // Engines
-  const audioEngineRef = useRef<RhythmAudioEngine | null>(null);
+  const audioEngineRef = useRef<MusicSynthEngine | null>(null);
   const voiceRaterRef = useRef<VoiceRater | null>(null);
 
   // Gameplay tracking
@@ -110,7 +110,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
 
   // Initialize Engines & Audio
   useEffect(() => {
-    audioEngineRef.current = new RhythmAudioEngine();
+    audioEngineRef.current = new MusicSynthEngine();
     voiceRaterRef.current = new VoiceRater();
 
     if (level === 3) {
