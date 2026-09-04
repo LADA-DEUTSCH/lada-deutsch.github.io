@@ -12,7 +12,8 @@ import {
   Sliders,
   RefreshCw,
   BookOpen,
-  MessageCircle
+  MessageCircle,
+  Music
 } from 'lucide-react';
 import type { LearnerProfile, KeyStatus, VoiceName, StageEvent, BridgeLanguageMode, TimelineChapter, SessionTurn } from '../types';
 import { AudioPipeline } from '../services/audioPipeline';
@@ -29,6 +30,7 @@ import { GenerativeStage } from './GenerativeStage';
 import { SettingsDrawer } from './SettingsDrawer';
 import { TextChatStudio } from './TextChatStudio';
 import { HistoryHub } from './HistoryHub';
+import { SongSelectHub } from './SongSelectHub';
 
 interface LiveCompanionProps {
   apiKeys: string[];
@@ -44,7 +46,7 @@ export const LiveCompanion: React.FC<LiveCompanionProps> = ({
   onLockVault
 }) => {
   // Navigation View (Native Bottom Tab Bar)
-  const [activeTab, setActiveTab] = useState<'call' | 'chat' | 'history'>('call');
+  const [activeTab, setActiveTab] = useState<'call' | 'beat3d' | 'chat' | 'history'>('call');
 
   // Call & Device State
   const [isLive, setIsLive] = useState(false);
@@ -742,7 +744,14 @@ export const LiveCompanion: React.FC<LiveCompanionProps> = ({
           </div>
         )}
 
-        {/* VIEW 2: TEXT CHAT STUDIO */}
+        {/* VIEW 2: 3D BEAT DEUTSCH GAME */}
+        {activeTab === 'beat3d' && (
+          <div style={{ width: '100%', height: '100%', overflowY: 'auto' }}>
+            <SongSelectHub />
+          </div>
+        )}
+
+        {/* VIEW 3: TEXT CHAT STUDIO */}
         {activeTab === 'chat' && (
           <div style={{ width: '100%', height: '100%' }}>
             <TextChatStudio
@@ -753,7 +762,7 @@ export const LiveCompanion: React.FC<LiveCompanionProps> = ({
           </div>
         )}
 
-        {/* VIEW 3: STORY & LOGS HUB */}
+        {/* VIEW 4: STORY & LOGS HUB */}
         {activeTab === 'history' && (
           <div style={{ width: '100%', height: '100%' }}>
             <HistoryHub
@@ -796,7 +805,28 @@ export const LiveCompanion: React.FC<LiveCompanionProps> = ({
           <span style={{ fontSize: '11px', fontWeight: activeTab === 'call' ? 800 : 600 }}>Call</span>
         </button>
 
-        {/* Tab 2: Chat */}
+        {/* Tab 2: 3D Beat */}
+        <button
+          onClick={() => setActiveTab('beat3d')}
+          style={{
+            flex: 1,
+            height: '100%',
+            background: 'transparent',
+            border: 'none',
+            color: activeTab === 'beat3d' ? '#facc15' : '#64748b',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '3px',
+            cursor: 'pointer'
+          }}
+        >
+          <Music size={18} />
+          <span style={{ fontSize: '11px', fontWeight: activeTab === 'beat3d' ? 800 : 600 }}>3D Beat</span>
+        </button>
+
+        {/* Tab 3: Chat */}
         <button
           onClick={() => setActiveTab('chat')}
           style={{
@@ -817,7 +847,7 @@ export const LiveCompanion: React.FC<LiveCompanionProps> = ({
           <span style={{ fontSize: '11px', fontWeight: activeTab === 'chat' ? 800 : 600 }}>Chat</span>
         </button>
 
-        {/* Tab 3: Story & History */}
+        {/* Tab 4: Story & History */}
         <button
           onClick={() => setActiveTab('history')}
           style={{

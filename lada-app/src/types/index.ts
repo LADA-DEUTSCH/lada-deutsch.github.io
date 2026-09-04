@@ -136,3 +136,43 @@ export interface LearnerProfile {
   personalFacts: PersonalFact[];
   vocabulary: SRSItem[];
 }
+
+// --- 3D Beat Deutsch Game Models ---
+export type InstrumentType = 'piano' | 'acoustic_guitar' | 'synthwave' | 'chillhop' | 'funk_bass' | 'moroccan_beat';
+
+export interface SongLyricItem {
+  id: string;
+  german: string;
+  phoneticGuide: string;
+  darijaCorrect: string;
+  darijaDistractor: string;
+  timingSec: number;
+  durationSec?: number;
+}
+
+export interface SongDefinition {
+  id: string;
+  number: number;
+  title: string;
+  subtitle: string;
+  theme: string;
+  tier: string;
+  bpm: number;
+  instrument: InstrumentType;
+  lyrics: SongLyricItem[];
+}
+
+export interface SongProgressRecord {
+  songId: string;
+  level1Completed: boolean;
+  level2Plays: number;
+  level2PerfectCount: number; // Target: 10 to unlock Level 3
+  level2HighScore: number;
+  level3Plays: number;
+  level3PerfectCount: number; // Target: 10 to certify Mastery
+  level3HighScore: number;
+  isMastered: boolean;
+}
+
+export type GameDifficultyLevel = 1 | 2 | 3;
+
