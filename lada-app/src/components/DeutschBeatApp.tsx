@@ -184,7 +184,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
               }}
             >
               <BookOpen size={14} />
-              <span>Dourous: {courseCompletedCount} / 20</span>
+              <span>الدروس: {courseCompletedCount} / 20</span>
             </div>
 
             <div
@@ -202,7 +202,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
               }}
             >
               <Trophy size={14} />
-              <span>Mastered: 👑 {masteredCount} / 20</span>
+              <span>إتقان تام: 👑 {masteredCount} / 20</span>
             </div>
 
             {/* Fullscreen Button */}
@@ -436,11 +436,11 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
                       color: activeProg.level1Completed ? '#4ade80' : '#facc15'
                     }}
                   >
-                    🎓 Oustad LADA
+                    🎓 الأستاذ لادا
                   </span>
                 </div>
                 <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 600 }}>
-                  {activeProg.level1Completed ? 'Meister-Ders ✅' : '📖 Studio Ta3limi'}
+                  {activeProg.level1Completed ? 'تم إكمال الدرس ✅' : '📖 ستوديو الشرح'}
                 </span>
               </button>
 
@@ -482,7 +482,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
                       color: !isLvl2Unlocked ? '#64748b' : '#38bdf8'
                     }}
                   >
-                    Niveau 2
+                    المستوى 2
                   </span>
                 </div>
                 <span
@@ -492,7 +492,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
                     fontWeight: 700
                   }}
                 >
-                  {isLvl2Unlocked ? `⚡ 3D (${activeProg.level2PerfectCount}/10)` : '🔒 Khass Ders 1'}
+                  {isLvl2Unlocked ? `⚡ 3D (${activeProg.level2PerfectCount}/10)` : '🔒 خاصك درس 1'}
                 </span>
               </button>
 
@@ -534,7 +534,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
                       color: !isLvl3Unlocked ? '#64748b' : '#c084fc'
                     }}
                   >
-                    Niveau 3
+                    المستوى 3
                   </span>
                 </div>
                 <span
@@ -544,9 +544,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
                     fontWeight: 700
                   }}
                 >
-                  {isLvl3Unlocked
-                    ? `🎙️ Voice (${activeProg.level3PerfectCount}/10 👑)`
-                    : '🔒 10x Lvl 2'}
+                  {isLvl3Unlocked ? '🎙️ حلبة النطق' : '🔒 خاص 10x في نيفو 2'}
                 </span>
               </button>
             </div>
