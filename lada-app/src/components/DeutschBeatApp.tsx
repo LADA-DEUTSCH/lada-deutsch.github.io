@@ -161,7 +161,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
               <Music size={18} color="#ffffff" />
             </div>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '0.6px' }}>
+              <div className="neon-text-cyan" style={{ fontSize: '15px', fontWeight: 900 }}>
                 DEUTSCH BEAT 3D
               </div>
             </div>
@@ -267,14 +267,10 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
 
           {/* Active Song Hero Showcase (Widescreen Card) */}
           <div
+            className={activeProg.isMastered ? "cyber-glass" : "animated-border"}
             style={{
               maxWidth: '680px',
               width: '100%',
-              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85))',
-              border: activeProg.isMastered
-                ? '2px solid rgba(234, 179, 8, 0.8)'
-                : '1px solid rgba(56, 189, 248, 0.4)',
-              borderRadius: '24px',
               padding: '24px 32px',
               boxShadow: activeProg.isMastered
                 ? '0 0 45px rgba(234, 179, 8, 0.3)'
@@ -406,6 +402,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
               {/* Niveau 1: Der Kurs (LESSON) */}
               <button
                 onClick={() => handleOpenCourse(activeSong)}
+                className="glow-interactive"
                 style={{
                   background: activeProg.level1Completed
                     ? 'rgba(34, 197, 94, 0.18)'
@@ -448,6 +445,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
               <button
                 disabled={!isLvl2Unlocked}
                 onClick={() => handleOpenRunner(activeSong, 2)}
+                className={isLvl2Unlocked ? "glow-interactive" : ""}
                 style={{
                   background: !isLvl2Unlocked
                     ? 'rgba(255, 255, 255, 0.03)'

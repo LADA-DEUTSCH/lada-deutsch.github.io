@@ -253,6 +253,7 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
         osc.start();
         osc.stop(ctx.currentTime + 0.35);
+        setTimeout(() => ctx.close().catch(() => {}), 500);
       } else {
         osc.frequency.setValueAtTime(260, ctx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(190, ctx.currentTime + 0.2);
@@ -260,6 +261,7 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
         osc.start();
         osc.stop(ctx.currentTime + 0.3);
+        setTimeout(() => ctx.close().catch(() => {}), 500);
       }
     } catch {
       // AudioContext unavailable

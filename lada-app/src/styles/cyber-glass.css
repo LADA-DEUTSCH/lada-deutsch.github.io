@@ -1,0 +1,115 @@
+/* 
+  LADA Deutsch - AAA Cyber-Glassmorphism 
+  Author: UI/UX Architect
+*/
+
+:root {
+  --neon-cyan: #00f0ff;
+  --neon-purple: #a855f7;
+  --neon-pink: #ec4899;
+  --bg-void: #010205;
+  --bg-deep: #0a0f1c;
+}
+
+/* 1. True Cyber-Glass Panel */
+.cyber-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 8px 32px 0 rgba(0, 0, 0, 0.6);
+  border-radius: 24px;
+}
+
+/* 2. Ambient Interactive Elements */
+@keyframes cyber-breathe {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 240, 255, 0.2); }
+  50% { box-shadow: 0 0 45px rgba(0, 240, 255, 0.7); }
+}
+
+.glow-interactive {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.glow-interactive:hover {
+  animation: cyber-breathe 2s infinite;
+  transform: translateY(-2px) scale(1.05);
+  border-color: var(--neon-cyan);
+}
+.glow-interactive:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* 3. Cinematic HUD Container */
+.hud-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background: radial-gradient(circle at center, var(--bg-deep) 0%, var(--bg-void) 100%);
+  overflow: hidden;
+  color: white;
+}
+
+.hud-left {
+  flex: 0 0 42%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud-right {
+  flex: 0 0 58%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 4. Neon Bloom Typography */
+.neon-text-cyan {
+  color: #fff;
+  text-shadow: 
+    0 0 5px var(--neon-cyan), 
+    0 0 10px var(--neon-cyan), 
+    0 0 20px var(--neon-cyan), 
+    0 0 40px #00a3cc,
+    0 0 80px #0082a3;
+  letter-spacing: 2px;
+}
+
+.neon-text-purple {
+  color: #fff;
+  text-shadow: 
+    0 0 5px var(--neon-purple), 
+    0 0 10px var(--neon-purple), 
+    0 0 20px var(--neon-purple);
+  letter-spacing: 1px;
+}
+
+/* 5. Animated Border / Data Flow */
+.animated-border {
+  position: relative;
+  border-radius: 24px;
+  background: rgba(11, 18, 36, 0.85);
+  z-index: 1;
+}
+.animated-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(45deg, var(--neon-cyan), transparent, var(--neon-purple), transparent, var(--neon-cyan));
+  background-size: 300% 300%;
+  animation: border-flow 4s linear infinite;
+  z-index: -1;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+.animated-border:hover::before {
+  opacity: 1;
+}
+
+@keyframes border-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}

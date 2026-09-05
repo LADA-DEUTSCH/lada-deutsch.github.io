@@ -299,8 +299,10 @@ class GeminiAudioTtsService {
       if (e?.name === 'AbortError') return;
       console.warn('Gemini TTS failed, trying fallback:', e);
     } finally {
-      this.speakLock = false;
-      this.abortController = null;
+      if (this.abortController?.signal === signal) {
+        this.speakLock = false;
+        this.abortController = null;
+      }
     }
 
     // STEP 3: Fallback to browser SpeechSynthesis
