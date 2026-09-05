@@ -2,23 +2,32 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   ArrowLeft,
   Volume2,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  HelpCircle,
-  Play,
   Maximize,
-  Minimize
+  Minimize,
+  GraduationCap,
+  Sparkles,
+  AlertTriangle,
+  MessageSquare,
+  RotateCcw,
+  Trophy,
+  Zap,
+  HelpCircle,
+  Play
 } from 'lucide-react';
 import type { SongDefinition } from '../types';
 import { recordLevelResult } from '../services/gameProgressStorage';
 import { toggleFullscreen, isFullscreen } from '../services/fullscreenUtils';
+import { getMasterProfessorGuidance } from '../services/pedagogyEngine';
 
 interface SongCourseLessonProps {
   song: SongDefinition;
   onBack: () => void;
   onUnlockedLevel2: () => void;
 }
+
+type ProfessorTab = 'explanation' | 'phonetic' | 'trap' | 'dialogue';
 
 export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
   song,
@@ -28,38 +37,50 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isSlow, setIsSlow] = useState(true);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [activeTab, setActiveTab] = useState<ProfessorTab>('explanation');
+  const [visitedIndices, setVisitedIndices] = useState<Set<number>>(new Set([0]));
   const [quizStep, setQuizStep] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [quizCompleted, setQuizCompleted] = useState(false);
   const [isFullscreenMode, setIsFullscreenMode] = useState(isFullscreen());
 
   const currentLyric = song.lyrics[currentIndex];
   const totalLyrics = song.lyrics.length;
+  const guidance = getMasterProfessorGuidance(currentLyric);
 
-  // Speak German audio using browser SpeechSynthesis
-  const playAudio = useCallback((text: string) => {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const cleaned = text.replace(/\[.*?\]/g, '').replace(/[\(\)]/g, '').trim();
-      const utt = new SpeechSynthesisUtterance(cleaned);
-      utt.lang = 'de-DE';
-      utt.rate = isSlow ? 0.75 : 1.0;
-      utt.pitch = 1.0;
+  // Audio speech synthesis
+  const playAudio = useCallback(
+    (text: string, forceSlow?: boolean) => {
+      if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+      try {
+        window.speechSynthesis.cancel();
+        const cleaned = text.replace(/\[.*?\]/g, '').replace(/[\(\)]/g, '').trim();
+        const utt = new SpeechSynthesisUtterance(cleaned);
+        utt.lang = 'de-DE';
+        utt.rate = (forceSlow !== undefined ? forceSlow : isSlow) ? 0.72 : 1.0;
+        utt.pitch = 1.0;
 
-      setIsPlayingAudio(true);
-      utt.onend = () => setIsPlayingAudio(false);
-      utt.onerror = () => setIsPlayingAudio(false);
+        setIsPlayingAudio(true);
+        utt.onend = () => setIsPlayingAudio(false);
+        utt.onerror = () => setIsPlayingAudio(false);
 
-      window.speechSynthesis.speak(utt);
-    } catch {
-      setIsPlayingAudio(false);
-    }
-  }, [isSlow]);
+        window.speechSynthesis.speak(utt);
+      } catch {
+        setIsPlayingAudio(false);
+      }
+    },
+    [isSlow]
+  );
 
-  // Spacebar shortcut to play audio
+  // Mark current index as visited
+  useEffect(() => {
+    setVisitedIndices((prev) => new Set([...prev, currentIndex]));
+  }, [currentIndex]);
+
+  // Keyboard navigation & spacebar playback
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      if (quizStep) return;
       if (e.code === 'Space') {
         e.preventDefault();
         playAudio(currentLyric.german);
@@ -71,27 +92,71 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
         const prev = currentIndex - 1;
         setCurrentIndex(prev);
         playAudio(song.lyrics[prev].german);
+      } else if (e.code === 'Digit1') {
+        setActiveTab('explanation');
+      } else if (e.code === 'Digit2') {
+        setActiveTab('phonetic');
+      } else if (e.code === 'Digit3') {
+        setActiveTab('trap');
+      } else if (e.code === 'Digit4') {
+        setActiveTab('dialogue');
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [currentIndex, currentLyric, playAudio, song.lyrics, totalLyrics]);
+  }, [currentIndex, currentLyric, playAudio, quizStep, song.lyrics, totalLyrics]);
 
-  // Article and syntax coloring
-  const getGenderColor = (text: string) => {
-    const lower = text.toLowerCase();
-    if (lower.startsWith('der ')) return '#38bdf8'; // Blue
-    if (lower.startsWith('die ')) return '#f472b6'; // Pink
-    if (lower.startsWith('das ')) return '#34d399'; // Green
-    return '#facc15'; // Amber / Gold for verbs & phrases
+  // Sound chime for quiz
+  const playChime = (isCorrect: boolean) => {
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (isCorrect) {
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+        osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.15); // E5
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.35);
+      } else {
+        osc.frequency.setValueAtTime(260, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(190, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+      }
+    } catch {
+      // AudioContext unavailable
+    }
   };
 
-  // 3 Quiz Questions generated from lyrics
+  // 3 Checkpoint Quiz items
   const quizItems = [
     song.lyrics[0],
     song.lyrics[Math.floor(song.lyrics.length / 2)],
     song.lyrics[song.lyrics.length - 1]
   ].filter(Boolean);
+
+  const handleQuizAnswer = (qIndex: number, chosenText: string) => {
+    const isCorrect = chosenText === quizItems[qIndex].darijaCorrect;
+    playChime(isCorrect);
+
+    const updated = { ...quizAnswers, [qIndex]: chosenText };
+    setQuizAnswers(updated);
+
+    if (Object.keys(updated).length === quizItems.length) {
+      const allCorrect = quizItems.every((item, idx) => updated[idx] === item.darijaCorrect);
+      if (allCorrect) {
+        setQuizCompleted(true);
+        recordLevelResult(song.id, 1, 100, 100);
+      }
+    }
+  };
 
   const handleFinishCourse = () => {
     recordLevelResult(song.id, 1, 100, 100);
@@ -103,111 +168,123 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        background: '#040711',
-        color: '#ffffff',
+        background: 'radial-gradient(circle at 50% 15%, #081022 0%, #030712 100%)',
+        color: '#f8fafc',
         display: 'flex',
         flexDirection: 'column',
         userSelect: 'none',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
-      {/* Top Header */}
+      {/* --- Top Header Navigation Bar --- */}
       <div
         style={{
-          height: '54px',
-          padding: '0 20px',
+          height: '56px',
+          padding: '0 24px',
           borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'rgba(8, 12, 24, 0.95)',
+          background: 'rgba(5, 10, 20, 0.85)',
+          backdropFilter: 'blur(16px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          zIndex: 20
+          zIndex: 30
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        {/* Left: Back & Song Meta */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <button
             onClick={onBack}
             style={{
-              width: '36px',
-              height: '36px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: '20px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              color: '#cbd5e1',
+              fontSize: '12px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
             }}
           >
-            <ArrowLeft size={16} />
+            <ArrowLeft size={14} />
+            <span>Rje3</span>
           </button>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 900,
-                  background: 'rgba(234, 179, 8, 0.2)',
-                  color: '#facc15',
-                  padding: '2px 8px',
-                  borderRadius: '6px'
-                }}
-              >
-                NIVEAU 1: DER KURS
-              </span>
-              <span style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>
-                #{song.number} {song.title}
-              </span>
-            </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span
+              style={{
+                fontSize: '10px',
+                fontWeight: 900,
+                letterSpacing: '0.8px',
+                background: 'linear-gradient(90deg, #facc15, #f59e0b)',
+                color: '#000000',
+                padding: '3px 10px',
+                borderRadius: '6px'
+              }}
+            >
+              🎓 OUSTAD LADA • DER MEISTER-KURS
+            </span>
+            <span style={{ fontSize: '15px', fontWeight: 800, color: '#ffffff' }}>
+              #{song.number} {song.title}
+            </span>
           </div>
         </div>
 
-        {/* Center Progress Dots */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          {song.lyrics.map((_, i) => (
-            <div
-              key={i}
-              onClick={() => {
-                setCurrentIndex(i);
-                playAudio(song.lyrics[i].german);
-              }}
-              style={{
-                width: i === currentIndex ? '20px' : '6px',
-                height: '6px',
-                borderRadius: '3px',
-                background:
-                  i === currentIndex
-                    ? '#38bdf8'
-                    : i < currentIndex
-                    ? 'rgba(56, 189, 248, 0.5)'
-                    : 'rgba(255,255,255,0.15)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
-            />
-          ))}
+        {/* Center: Interactive Progress Pills */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          {song.lyrics.map((_, i) => {
+            const isCurrent = i === currentIndex;
+            const isVisited = visitedIndices.has(i);
+            return (
+              <div
+                key={i}
+                onClick={() => {
+                  if (quizStep) return;
+                  setCurrentIndex(i);
+                  playAudio(song.lyrics[i].german);
+                }}
+                title={`Kelma ${i + 1}`}
+                style={{
+                  width: isCurrent ? '26px' : '9px',
+                  height: '9px',
+                  borderRadius: '5px',
+                  background: isCurrent
+                    ? '#00f0ff'
+                    : isVisited
+                    ? '#10b981'
+                    : 'rgba(255, 255, 255, 0.15)',
+                  cursor: quizStep ? 'default' : 'pointer',
+                  boxShadow: isCurrent ? '0 0 10px rgba(0, 240, 255, 0.8)' : 'none',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                }}
+              />
+            );
+          })}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Audio Speed Toggle */}
+        {/* Right: Audio Speed Selector & Fullscreen */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
             onClick={() => setIsSlow(!isSlow)}
             style={{
               fontSize: '11px',
-              fontWeight: 700,
-              padding: '5px 12px',
-              borderRadius: '16px',
-              background: isSlow ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.08)',
-              border: isSlow ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
-              color: isSlow ? '#38bdf8' : '#94a3b8',
-              cursor: 'pointer'
+              fontWeight: 800,
+              padding: '6px 14px',
+              borderRadius: '20px',
+              background: isSlow ? 'rgba(0, 240, 255, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+              border: isSlow ? '1px solid #00f0ff' : '1px solid rgba(255, 255, 255, 0.12)',
+              color: isSlow ? '#00f0ff' : '#94a3b8',
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
             }}
           >
             {isSlow ? '🐢 B chwiya (0.75x)' : '⚡ 3adi (1.0x)'}
           </button>
 
-          {/* Fullscreen Button */}
           <button
             onClick={() => {
               toggleFullscreen();
@@ -215,11 +292,11 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
             }}
             title="Plein Écran"
             style={{
-              width: '32px',
-              height: '32px',
+              width: '34px',
+              height: '34px',
               borderRadius: '50%',
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
               color: '#38bdf8',
               display: 'flex',
               alignItems: 'center',
@@ -227,202 +304,612 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
               cursor: 'pointer'
             }}
           >
-            {isFullscreenMode ? <Minimize size={14} /> : <Maximize size={14} />}
+            {isFullscreenMode ? <Minimize size={15} /> : <Maximize size={15} />}
           </button>
         </div>
       </div>
 
-      {/* Main Widescreen Split Stage */}
+      {/* --- Main Studio Stage (Widescreen 16:9) --- */}
       {!quizStep ? (
         <div
           style={{
             flex: 1,
             display: 'flex',
-            padding: '16px 24px',
-            gap: '20px',
+            padding: '18px 24px',
+            gap: '22px',
             overflow: 'hidden'
           }}
         >
-          {/* Left Panel: German Spotlight (45%) */}
+          {/* ==================================================== */}
+          {/* LEFT STAGE: The German Word Acoustic Spotlight (42%) */}
+          {/* ==================================================== */}
           <div
             style={{
-              flex: 45,
-              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.8))',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
-              borderRadius: '20px',
+              flex: 42,
+              background: 'rgba(10, 16, 32, 0.75)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              backdropFilter: 'blur(20px)',
+              borderRadius: '24px',
               padding: '24px',
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center',
               justifyContent: 'space-between',
-              boxShadow: '0 15px 35px rgba(0,0,0,0.5)',
+              alignItems: 'center',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)',
               position: 'relative'
             }}
           >
-            {/* Word Index Tag */}
+            {/* Top Tag & Grammatical Role */}
             <div
               style={{
-                alignSelf: 'flex-start',
-                fontSize: '11px',
-                fontWeight: 800,
-                color: '#94a3b8',
-                background: 'rgba(255,255,255,0.06)',
-                padding: '3px 10px',
-                borderRadius: '8px'
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
               }}
             >
-              Kelma {currentIndex + 1} / {totalLyrics}
-            </div>
-
-            {/* German Word */}
-            <div style={{ textAlign: 'center', margin: 'auto 0' }}>
               <div
                 style={{
-                  fontSize: '36px',
+                  fontSize: '11px',
                   fontWeight: 900,
-                  color: getGenderColor(currentLyric.german),
+                  padding: '4px 12px',
+                  borderRadius: '12px',
+                  background: guidance.grammarBadge.bg,
+                  color: guidance.grammarBadge.color,
+                  border: `1px solid ${guidance.grammarBadge.border}`,
+                  letterSpacing: '0.5px'
+                }}
+              >
+                {guidance.grammarBadge.label}
+              </div>
+
+              <div
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#94a3b8',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  padding: '4px 10px',
+                  borderRadius: '10px'
+                }}
+              >
+                Kelma {currentIndex + 1} / {totalLyrics}
+              </div>
+            </div>
+
+            {/* Word Centerpiece */}
+            <div
+              style={{
+                textAlign: 'center',
+                width: '100%',
+                margin: 'auto 0',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}
+            >
+              {/* Giant German Word */}
+              <div
+                style={{
+                  fontSize:
+                    currentLyric.german.length > 20
+                      ? '28px'
+                      : currentLyric.german.length > 12
+                      ? '36px'
+                      : '44px',
+                  fontWeight: 900,
+                  color: guidance.grammarBadge.color,
                   lineHeight: '1.2',
-                  marginBottom: '12px',
-                  textShadow: '0 0 25px rgba(250, 204, 21, 0.25)'
+                  marginBottom: '14px',
+                  letterSpacing: '-0.5px',
+                  textShadow: `0 0 35px ${guidance.grammarBadge.color}40`
                 }}
               >
                 {currentLyric.german}
               </div>
 
-              {/* Phonetic Tag */}
+              {/* Phonetic Pronunciation Pill */}
               <div
-                style={{
-                  display: 'inline-block',
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  padding: '5px 16px',
-                  borderRadius: '20px',
-                  fontSize: '13px',
-                  color: '#cbd5e1'
-                }}
-              >
-                🗣️ Ntiq: <strong>{currentLyric.phoneticGuide}</strong>
-              </div>
-            </div>
-
-            {/* Glowing Audio Button */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
-              <button
                 onClick={() => playAudio(currentLyric.german)}
                 style={{
-                  width: '60px',
-                  height: '60px',
-                  borderRadius: '50%',
-                  background: isPlayingAudio
-                    ? 'linear-gradient(135deg, #facc15, #eab308)'
-                    : 'linear-gradient(135deg, #0284c7, #2563eb)',
-                  border: 'none',
-                  color: isPlayingAudio ? '#000000' : '#ffffff',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(255, 255, 255, 0.06)',
+                  border: '1px solid rgba(255, 255, 255, 0.15)',
+                  padding: '6px 18px',
+                  borderRadius: '24px',
+                  fontSize: '14px',
+                  color: '#e2e8f0',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+              >
+                <span style={{ color: '#00f0ff' }}>🗣️ Ntiq:</span>
+                <strong style={{ letterSpacing: '0.3px' }}>{currentLyric.phoneticGuide}</strong>
+              </div>
+
+              {/* Waveform Dynamic Visualizer */}
+              <div
+                style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(2, 132, 199, 0.5)',
-                  transform: isPlayingAudio ? 'scale(1.08)' : 'scale(1)',
-                  transition: 'transform 0.15s ease'
+                  gap: '4px',
+                  height: '36px',
+                  marginTop: '18px'
                 }}
               >
-                <Volume2 size={26} />
-              </button>
-              <div style={{ fontSize: '10px', color: '#94a3b8' }}>
-                Wrek bash tsme3 (wla wrek <strong>Space</strong>)
+                {Array.from({ length: 18 }).map((_, idx) => {
+                  const heights = [8, 14, 22, 10, 28, 16, 32, 24, 18, 30, 14, 26, 12, 20, 16, 24, 10, 8];
+                  const barHeight = isPlayingAudio
+                    ? heights[idx % heights.length]
+                    : 6;
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        width: '3px',
+                        height: `${barHeight}px`,
+                        borderRadius: '2px',
+                        background: isPlayingAudio
+                          ? 'linear-gradient(180deg, #00f0ff, #facc15)'
+                          : 'rgba(255, 255, 255, 0.15)',
+                        transition: 'height 0.12s ease'
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Audio Interaction Center */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '8px',
+                width: '100%'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <button
+                  onClick={() => playAudio(currentLyric.german, true)}
+                  title="3awed b chwiya (0.75x)"
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    color: '#94a3b8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <RotateCcw size={16} />
+                </button>
+
+                {/* Big Glowing Audio Playback Button */}
+                <button
+                  onClick={() => playAudio(currentLyric.german)}
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: isPlayingAudio
+                      ? 'linear-gradient(135deg, #00f0ff, #0284c7)'
+                      : 'linear-gradient(135deg, #0284c7, #2563eb)',
+                    border: 'none',
+                    color: '#ffffff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    boxShadow: isPlayingAudio
+                      ? '0 0 30px rgba(0, 240, 255, 0.7)'
+                      : '0 10px 25px rgba(2, 132, 199, 0.4)',
+                    transform: isPlayingAudio ? 'scale(1.08)' : 'scale(1)',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <Volume2 size={28} />
+                </button>
+
+                <button
+                  onClick={() => playAudio(currentLyric.german, false)}
+                  title="3awed b sor3a 3adiya (1.0x)"
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.08)',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    color: '#94a3b8',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <Zap size={16} />
+                </button>
+              </div>
+
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>
+                Wrek bash tsme3 • Shortcut: <strong>Spacebar</strong> ⌨️
               </div>
             </div>
           </div>
 
-          {/* Right Panel: Darija Master Guide & Controls (55%) */}
+          {/* ==================================================== */}
+          {/* RIGHT STAGE: The Master Professor Desk (58%)         */}
+          {/* ==================================================== */}
           <div
             style={{
-              flex: 55,
+              flex: 58,
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between',
               gap: '14px'
             }}
           >
-            {/* Darija Guide Card */}
+            {/* Top Professor Card */}
             <div
               style={{
                 flex: 1,
-                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.7))',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '20px',
-                padding: '22px',
+                background: 'rgba(10, 16, 32, 0.85)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                backdropFilter: 'blur(20px)',
+                borderRadius: '24px',
+                padding: '20px 24px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                boxShadow: '0 15px 35px rgba(0,0,0,0.5)'
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.6)',
+                overflowY: 'auto'
               }}
             >
               <div>
+                {/* Professor Status Bar */}
                 <div
                   style={{
-                    fontSize: '11px',
-                    color: '#94a3b8',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.6px',
-                    marginBottom: '6px'
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '12px'
                   }}
                 >
-                  🇲🇦 L-Ma3na b Darija
-                </div>
-                <div style={{ fontSize: '24px', fontWeight: 900, color: '#ffffff', marginBottom: '16px' }}>
-                  {currentLyric.darijaCorrect}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #facc15, #f59e0b)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#000000'
+                      }}
+                    >
+                      <GraduationCap size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#ffffff' }}>
+                        Oustad LADA: Char7 d l-Oustad
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      color: '#10b981',
+                      background: 'rgba(16, 185, 129, 0.1)',
+                      border: '1px solid rgba(16, 185, 129, 0.25)',
+                      padding: '2px 10px',
+                      borderRadius: '12px'
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        background: '#10b981',
+                        boxShadow: '0 0 6px #10b981'
+                      }}
+                    />
+                    Live Darija Pedagogy
+                  </div>
                 </div>
 
-                {/* Practical Context Box */}
+                {/* Moroccan Darija Translation Title */}
                 <div
                   style={{
-                    background: 'rgba(56, 189, 248, 0.08)',
-                    border: '1px solid rgba(56, 189, 248, 0.2)',
-                    borderRadius: '14px',
-                    padding: '14px',
-                    fontSize: '13px',
-                    color: '#93c5fd',
-                    lineHeight: '1.6'
+                    background: 'linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: '16px',
+                    padding: '12px 18px',
+                    marginBottom: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
                   }}
                 >
-                  💡 <strong>Kifach t3qel 3liha:</strong> Had l-kelma kat-st3mel f l-Almaniya yawmiyan. Hfedha b n-ntiq <em>{currentLyric.phoneticGuide}</em> bash fach tmshi l Niveau 2 d l-3erd t-3refha b zzerba bla ma tfekker!
+                  <div>
+                    <div style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.6px' }}>
+                      🇲🇦 L-Ma3na b Darija l-Maghribiya
+                    </div>
+                    <div style={{ fontSize: '22px', fontWeight: 900, color: '#facc15', marginTop: '2px' }}>
+                      {currentLyric.darijaCorrect}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '24px' }}>✨</div>
+                </div>
+
+                {/* Interactive 4-Tab Navigation Selector */}
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '6px',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    padding: '4px',
+                    borderRadius: '14px',
+                    marginBottom: '14px'
+                  }}
+                >
+                  <button
+                    onClick={() => setActiveTab('explanation')}
+                    style={{
+                      flex: 1,
+                      padding: '8px 4px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: activeTab === 'explanation' ? '#00f0ff' : 'transparent',
+                      color: activeTab === 'explanation' ? '#000000' : '#cbd5e1',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Sparkles size={13} />
+                    <span>Char7 d l-Prof</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('phonetic')}
+                    style={{
+                      flex: 1,
+                      padding: '8px 4px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: activeTab === 'phonetic' ? '#38bdf8' : 'transparent',
+                      color: activeTab === 'phonetic' ? '#000000' : '#cbd5e1',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <Volume2 size={13} />
+                    <span>Sirr d n-Ntiq</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('trap')}
+                    style={{
+                      flex: 1,
+                      padding: '8px 4px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: activeTab === 'trap' ? '#f59e0b' : 'transparent',
+                      color: activeTab === 'trap' ? '#000000' : '#cbd5e1',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <AlertTriangle size={13} />
+                    <span>Fekh l-Mgharba</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveTab('dialogue')}
+                    style={{
+                      flex: 1,
+                      padding: '8px 4px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: activeTab === 'dialogue' ? '#a78bfa' : 'transparent',
+                      color: activeTab === 'dialogue' ? '#000000' : '#cbd5e1',
+                      fontSize: '11px',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '5px',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <MessageSquare size={13} />
+                    <span>F l-Waqi3</span>
+                  </button>
+                </div>
+
+                {/* Tab Content Box */}
+                <div
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    minHeight: '120px'
+                  }}
+                >
+                  {/* Tab 1: Char7 d l-Oustad */}
+                  {activeTab === 'explanation' && (
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#00f0ff', marginBottom: '6px' }}>
+                        🧠 Kifach t-fhemha w t-khedemha bla ma tfekker:
+                      </div>
+                      <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>
+                        {guidance.explanation}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab 2: Sirr d n-Ntiq */}
+                  {activeTab === 'phonetic' && (
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#38bdf8', marginBottom: '6px' }}>
+                        🗣️ Sirr d n-Ntiq: Fin t-7ett lsanek w chnayfek:
+                      </div>
+                      <div style={{ fontSize: '13px', lineHeight: '1.7', color: '#e2e8f0' }}>
+                        {guidance.phoneticSecret}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab 3: Fekh l-Mgharba */}
+                  {activeTab === 'trap' && (
+                    <div
+                      style={{
+                        background: 'rgba(245, 158, 11, 0.08)',
+                        border: '1px solid rgba(245, 158, 11, 0.25)',
+                        borderRadius: '12px',
+                        padding: '12px'
+                      }}
+                    >
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#f59e0b', marginBottom: '4px' }}>
+                        ⚠️ Rdd l-bal mn had l-Ghalat li kaydiroh l-Mgharba:
+                      </div>
+                      <div style={{ fontSize: '13px', lineHeight: '1.6', color: '#fef3c7' }}>
+                        {guidance.moroccanTrap}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tab 4: F l-Waqi3 (Street Dialogue) */}
+                  {activeTab === 'dialogue' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ fontSize: '11px', fontWeight: 800, color: '#a78bfa', marginBottom: '4px' }}>
+                        🎬 Hiwar f l-Waqi3 (Kifach kayhdro l-Alman f z-zenqa):
+                      </div>
+
+                      <div
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          padding: '8px 12px',
+                          borderRadius: '10px',
+                          fontSize: '13px'
+                        }}
+                      >
+                        <span style={{ color: '#38bdf8', fontWeight: 700 }}>
+                          {guidance.realDialogue.speakerA}{' '}
+                        </span>
+                        <span style={{ color: '#ffffff' }}>{guidance.realDialogue.germanA}</span>
+                      </div>
+
+                      <div
+                        style={{
+                          background: 'rgba(0, 240, 255, 0.08)',
+                          border: '1px solid rgba(0, 240, 255, 0.2)',
+                          padding: '8px 12px',
+                          borderRadius: '10px',
+                          fontSize: '13px'
+                        }}
+                      >
+                        <span style={{ color: '#00f0ff', fontWeight: 700 }}>
+                          {guidance.realDialogue.speakerB}{' '}
+                        </span>
+                        <span style={{ color: '#ffffff', fontWeight: 700 }}>
+                          {guidance.realDialogue.germanB}
+                        </span>
+                      </div>
+
+                      <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic', marginTop: '2px' }}>
+                        📌 Siyaq: {guidance.realDialogue.darijaContext}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div style={{ fontSize: '12px', color: '#64748b' }}>
-                Kmml ga3 l-kelmat bash it7ell lik l-quiz d l-fhamat w tdouz l Niveau 2 d l-Highway!
+              {/* Memory Hook Banner (Pinned Bottom) */}
+              <div
+                style={{
+                  marginTop: '12px',
+                  background: 'rgba(250, 204, 21, 0.08)',
+                  border: '1px solid rgba(250, 204, 21, 0.2)',
+                  borderRadius: '12px',
+                  padding: '10px 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '12px',
+                  color: '#fde047'
+                }}
+              >
+                <span>💡</span>
+                <span>
+                  <strong>Sirr d l-Hfid:</strong> {guidance.memoryHook}
+                </span>
               </div>
             </div>
 
-            {/* Bottom Widescreen Navigation Bar */}
+            {/* Bottom Widescreen Deck Navigation */}
             <div style={{ display: 'flex', gap: '12px', height: '52px' }}>
               <button
-                disabled={currentIndex === 0}
                 onClick={() => {
-                  const prev = Math.max(0, currentIndex - 1);
-                  setCurrentIndex(prev);
-                  playAudio(song.lyrics[prev].german);
+                  if (currentIndex > 0) {
+                    const prev = currentIndex - 1;
+                    setCurrentIndex(prev);
+                    playAudio(song.lyrics[prev].german);
+                  }
                 }}
+                disabled={currentIndex === 0}
                 style={{
                   flex: 1,
-                  borderRadius: '14px',
+                  borderRadius: '16px',
                   background: 'rgba(255, 255, 255, 0.06)',
                   border: '1px solid rgba(255, 255, 255, 0.12)',
-                  color: '#ffffff',
+                  color: currentIndex === 0 ? '#475569' : '#ffffff',
                   fontSize: '13px',
-                  fontWeight: 700,
+                  fontWeight: 800,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '6px',
+                  gap: '8px',
                   cursor: currentIndex === 0 ? 'not-allowed' : 'pointer',
-                  opacity: currentIndex === 0 ? 0.35 : 1
+                  transition: 'all 0.15s ease'
                 }}
               >
                 <ChevronLeft size={16} />
-                <span>S-Sabiq</span>
+                <span>S-Sabiq (←)</span>
               </button>
 
               {currentIndex < totalLyrics - 1 ? (
@@ -434,30 +921,31 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                   }}
                   style={{
                     flex: 2,
-                    borderRadius: '14px',
+                    borderRadius: '16px',
                     background: 'linear-gradient(135deg, #0284c7, #2563eb)',
                     border: 'none',
                     color: '#ffffff',
                     fontSize: '14px',
-                    fontWeight: 800,
+                    fontWeight: 900,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
+                    gap: '8px',
                     cursor: 'pointer',
-                    boxShadow: '0 8px 20px rgba(2, 132, 199, 0.3)'
+                    boxShadow: '0 8px 20px rgba(2, 132, 199, 0.4)',
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  <span>L-Majia</span>
-                  <ChevronRight size={16} />
+                  <span>L-Kelma l-Majia (→)</span>
+                  <ChevronRight size={18} />
                 </button>
               ) : (
                 <button
                   onClick={() => setQuizStep(true)}
                   style={{
                     flex: 2,
-                    borderRadius: '14px',
-                    background: 'linear-gradient(135deg, #facc15, #eab308)',
+                    borderRadius: '16px',
+                    background: 'linear-gradient(135deg, #f59e0b, #eab308)',
                     border: 'none',
                     color: '#000000',
                     fontSize: '14px',
@@ -465,169 +953,244 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '6px',
+                    gap: '8px',
                     cursor: 'pointer',
-                    boxShadow: '0 8px 20px rgba(250, 204, 21, 0.4)'
+                    boxShadow: '0 8px 25px rgba(245, 158, 11, 0.5)',
+                    transition: 'all 0.15s ease'
                   }}
                 >
-                  <CheckCircle2 size={16} />
-                  <span>Kmmlt l-Ders! Ikhtibar Sari3</span>
+                  <Trophy size={18} />
+                  <span>Kmml l-Ders & Douz l l-Quiz! 🎯</span>
                 </button>
               )}
             </div>
           </div>
         </div>
       ) : (
-        /* Widescreen Quiz Grid */
+        /* ==================================================== */
+        /* ACTIVE RECALL CHECKPOINT (THE COMPREHENSION QUIZ)    */
+        /* ==================================================== */
         <div
           style={{
             flex: 1,
             display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: '20px 30px',
-            overflowY: 'auto'
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px'
           }}
         >
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <HelpCircle size={20} color="#38bdf8" />
-              <h2 style={{ fontSize: '18px', fontWeight: 900, margin: 0, color: '#ffffff' }}>
-                Ikhtibar Sari3 d l-Fhamat
-              </h2>
-            </div>
-            <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-              Jawb 3la had l-3 d les questions bash t2kked annak fhemti l-kelmat qbel mat-l3eb f l-Highway!
-            </div>
-          </div>
-
-          {/* 3 Question Cards Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '16px' }}>
-            {quizItems.map((item, idx) => {
-              const chosen = quizAnswers[idx];
-              const isCorrect = chosen === item.darijaCorrect;
-              const options = [item.darijaCorrect, item.darijaDistractor].sort();
-
-              return (
-                <div
-                  key={item.id}
-                  style={{
-                    background: 'rgba(15, 23, 42, 0.85)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '16px',
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '4px' }}>
-                      So2al {idx + 1}: Chno l-ma3na d:
-                    </div>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#facc15', marginBottom: '14px' }}>
-                      "{item.german}" ?
-                    </div>
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '680px',
+              background: 'rgba(10, 16, 32, 0.9)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              backdropFilter: 'blur(24px)',
+              borderRadius: '28px',
+              padding: '32px',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.7)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px'
+            }}
+          >
+            {!quizCompleted ? (
+              <>
+                <div style={{ textAlign: 'center' }}>
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '11px',
+                      fontWeight: 900,
+                      background: 'rgba(250, 204, 21, 0.15)',
+                      color: '#facc15',
+                      border: '1px solid rgba(250, 204, 21, 0.3)',
+                      padding: '4px 14px',
+                      borderRadius: '20px',
+                      marginBottom: '8px'
+                    }}
+                  >
+                    <HelpCircle size={14} />
+                    <span>ACTIVE RECALL CHECKPOINT</span>
                   </div>
+                  <h2 style={{ fontSize: '22px', fontWeight: 900, margin: '4px 0', color: '#ffffff' }}>
+                    Test d l-Fhamat: Wash dbti had l-kelmat?
+                  </h2>
+                  <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
+                    Jawb 3la had l-3 d l-as2ila bash t-veri-fier fhamtek w it-7ell lik Niveau 2 d l-Highway!
+                  </p>
+                </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    {options.map((opt) => {
-                      const isSelected = chosen === opt;
-                      let btnBg = 'rgba(255,255,255,0.05)';
-                      let btnBorder = 'rgba(255,255,255,0.1)';
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {quizItems.map((item, qIdx) => {
+                    const chosen = quizAnswers[qIdx];
+                    const isAnswered = chosen !== undefined;
+                    const isCorrect = chosen === item.darijaCorrect;
 
-                      if (isSelected) {
-                        btnBg = 'rgba(56, 189, 248, 0.25)';
-                        btnBorder = '#38bdf8';
-                      }
+                    return (
+                      <div
+                        key={qIdx}
+                        style={{
+                          background: 'rgba(255, 255, 255, 0.04)',
+                          border: isAnswered
+                            ? isCorrect
+                              ? '1px solid #10b981'
+                              : '1px solid #ef4444'
+                            : '1px solid rgba(255, 255, 255, 0.08)',
+                          borderRadius: '16px',
+                          padding: '14px 18px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '16px'
+                        }}
+                      >
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>
+                            Soual {qIdx + 1}: Chno kat3ni:
+                          </div>
+                          <div style={{ fontSize: '20px', fontWeight: 900, color: '#00f0ff' }}>
+                            {item.german}
+                          </div>
+                        </div>
 
-                      if (quizSubmitted) {
-                        if (opt === item.darijaCorrect) {
-                          btnBg = 'rgba(34, 197, 94, 0.25)';
-                          btnBorder = '#22c55e';
-                        } else if (isSelected && !isCorrect) {
-                          btnBg = 'rgba(239, 68, 68, 0.25)';
-                          btnBorder = '#ef4444';
-                        }
-                      }
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {[item.darijaCorrect, item.darijaDistractor]
+                            .sort((a, b) => (qIdx % 2 === 0 ? (a > b ? 1 : -1) : (a > b ? -1 : 1)))
+                            .map((choice, cIdx) => {
+                              const isThisChosen = chosen === choice;
+                              return (
+                                <button
+                                  key={cIdx}
+                                  onClick={() => handleQuizAnswer(qIdx, choice)}
+                                  style={{
+                                    padding: '8px 16px',
+                                    borderRadius: '12px',
+                                    background: isThisChosen
+                                      ? choice === item.darijaCorrect
+                                        ? '#10b981'
+                                        : '#ef4444'
+                                      : 'rgba(255, 255, 255, 0.08)',
+                                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                                    color: '#ffffff',
+                                    fontSize: '12px',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  {choice}
+                                </button>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                      return (
-                        <button
-                          key={opt}
-                          onClick={() => {
-                            if (!quizSubmitted) {
-                              setQuizAnswers({ ...quizAnswers, [idx]: opt });
-                            }
-                          }}
-                          style={{
-                            padding: '10px 12px',
-                            borderRadius: '10px',
-                            background: btnBg,
-                            border: `1px solid ${btnBorder}`,
-                            color: '#ffffff',
-                            fontSize: '13px',
-                            fontWeight: isSelected ? 800 : 600,
-                            textAlign: 'left',
-                            cursor: quizSubmitted ? 'default' : 'pointer'
-                          }}
-                        >
-                          {opt}
-                        </button>
-                      );
-                    })}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button
+                    onClick={() => setQuizStep(false)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#94a3b8',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    ← Rje3 l d-ders
+                  </button>
+
+                  <div style={{ fontSize: '12px', color: '#64748b' }}>
+                    Khtar l-jawab s-s7i7 l kol soual
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Submit Action */}
-          <div style={{ maxWidth: '420px', width: '100%', margin: '0 auto' }}>
-            {!quizSubmitted ? (
-              <button
-                disabled={Object.keys(quizAnswers).length < quizItems.length}
-                onClick={() => setQuizSubmitted(true)}
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  borderRadius: '14px',
-                  background:
-                    Object.keys(quizAnswers).length === quizItems.length
-                      ? 'linear-gradient(135deg, #0284c7, #2563eb)'
-                      : 'rgba(255,255,255,0.08)',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '14px',
-                  fontWeight: 800,
-                  cursor: Object.keys(quizAnswers).length === quizItems.length ? 'pointer' : 'not-allowed',
-                  opacity: Object.keys(quizAnswers).length === quizItems.length ? 1 : 0.4
-                }}
-              >
-                T2kked mn l-Ajwiba
-              </button>
+              </>
             ) : (
-              <button
-                onClick={handleFinishCourse}
-                style={{
-                  width: '100%',
-                  padding: '14px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '15px',
-                  fontWeight: 900,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  boxShadow: '0 8px 24px rgba(34, 197, 94, 0.4)'
-                }}
-              >
-                <Play size={18} />
-                <span>Nadi! Débloquer Niveau 2 (3D Runner)</span>
-              </button>
+              /* Quiz Passed Celebration Screen */
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <div
+                  style={{
+                    width: '76px',
+                    height: '76px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 16px',
+                    boxShadow: '0 0 35px rgba(16, 185, 129, 0.6)'
+                  }}
+                >
+                  <Trophy size={40} color="#ffffff" />
+                </div>
+
+                <div
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 900,
+                    color: '#10b981',
+                    textTransform: 'uppercase',
+                    letterSpacing: '1px',
+                    marginBottom: '4px'
+                  }}
+                >
+                  DER KURS MEISTERHAFT BEENDET!
+                </div>
+
+                <h2 style={{ fontSize: '28px', fontWeight: 900, color: '#ffffff', marginBottom: '8px' }}>
+                  Tbarkellah 3lik! Dbti l-Ders 100%!
+                </h2>
+
+                <p style={{ fontSize: '14px', color: '#cbd5e1', maxWidth: '440px', margin: '0 auto 24px' }}>
+                  Fhemti ga3 l-asrar d n-ntiq w l-grammaire d had l-ghoniya. Daba t7ell lik{' '}
+                  <strong style={{ color: '#00f0ff' }}>Niveau 2: 3D Dual-Choice Runner</strong>!
+                </p>
+
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                  <button
+                    onClick={onBack}
+                    style={{
+                      padding: '12px 24px',
+                      borderRadius: '16px',
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      color: '#ffffff',
+                      fontSize: '14px',
+                      fontWeight: 800,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Rje3 l l-Menu
+                  </button>
+
+                  <button
+                    onClick={handleFinishCourse}
+                    style={{
+                      padding: '12px 32px',
+                      borderRadius: '16px',
+                      background: 'linear-gradient(135deg, #00f0ff, #0284c7)',
+                      border: 'none',
+                      color: '#000000',
+                      fontSize: '15px',
+                      fontWeight: 900,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: 'pointer',
+                      boxShadow: '0 8px 25px rgba(0, 240, 255, 0.5)'
+                    }}
+                  >
+                    <span>Bda Niveau 2: 3D Highway</span>
+                    <Play size={16} fill="#000000" />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>

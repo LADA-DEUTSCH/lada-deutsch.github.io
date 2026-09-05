@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  LogOut,
   Maximize,
   Minimize
 } from 'lucide-react';
@@ -26,10 +25,10 @@ import { OrientationGuard } from './OrientationGuard';
 import { toggleFullscreen, isFullscreen } from '../services/fullscreenUtils';
 
 interface DeutschBeatAppProps {
-  onLockVault: () => void;
+  onLockVault?: () => void;
 }
 
-export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = ({ onLockVault }) => {
+export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
   const songs = getAllSongs();
   const [activeSongIndex, setActiveSongIndex] = useState(0);
   const [activeMode, setActiveMode] = useState<'catalog' | 'course' | 'runner'>('catalog');
@@ -227,26 +226,6 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = ({ onLockVault }) =
               }}
             >
               {isFullscreenMode ? <Minimize size={15} /> : <Maximize size={15} />}
-            </button>
-
-            {/* Lock Vault */}
-            <button
-              onClick={onLockVault}
-              title="Lock Vault"
-              style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.06)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                color: '#94a3b8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer'
-              }}
-            >
-              <LogOut size={14} />
             </button>
           </div>
         </div>
@@ -457,11 +436,11 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = ({ onLockVault }) =
                       color: activeProg.level1Completed ? '#4ade80' : '#facc15'
                     }}
                   >
-                    Niveau 1
+                    🎓 Oustad LADA
                   </span>
                 </div>
                 <span style={{ fontSize: '11px', color: '#cbd5e1', fontWeight: 600 }}>
-                  {activeProg.level1Completed ? 'Ders M-Kemmel ✅' : '📖 Ders Ta3limi'}
+                  {activeProg.level1Completed ? 'Meister-Ders ✅' : '📖 Studio Ta3limi'}
                 </span>
               </button>
 
