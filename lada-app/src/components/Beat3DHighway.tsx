@@ -7,12 +7,15 @@ import {
   Trophy,
   Award,
   Mic,
-  Flame
+  Flame,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 import type { SongDefinition, GameDifficultyLevel, SongLyricItem } from '../types';
 import { MusicSynthEngine } from '../services/musicSynthEngine';
 import { VoiceRater } from '../services/voiceRater';
 import { recordLevelResult, getSongProgress } from '../services/gameProgressStorage';
+import { toggleFullscreen, isFullscreen } from '../services/fullscreenUtils';
 
 interface Beat3DHighwayProps {
   song: SongDefinition;
@@ -57,6 +60,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
   const [songProgressPct, setSongProgressPct] = useState(0);
   const [selectedLane, setSelectedLane] = useState<0 | 1>(0);
   const [gameState, setGameState] = useState<'playing' | 'ended'>('playing');
+  const [isFullscreenMode, setIsFullscreenMode] = useState(isFullscreen());
 
   // Mic and voice transcription for Level 3
   const [liveTranscript, setLiveTranscript] = useState('');
@@ -91,6 +95,11 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
     setSelectedLane(lane);
     selectedLaneRef.current = lane;
   }, []);
+
+  const handleFullscreen = () => {
+    toggleFullscreen();
+    setIsFullscreenMode(!isFullscreenMode);
+  };
 
   // Keyboard controls
   useEffect(() => {
@@ -129,10 +138,8 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       });
     }
 
-    // Start Song Rhythm
     audioEngineRef.current.startSongRhythm(song.bpm, song.instrument);
 
-    // Initialize Tile Queue
     const TRAVEL_TIME_SEC = level === 1 ? 4.5 : 3.5;
     const tiles: ActiveTile[] = song.lyrics.map((l) => {
       const correctLane: 0 | 1 = Math.random() > 0.5 ? 1 : 0;
@@ -162,25 +169,24 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
     };
   }, [song, level]);
 
-  // Particle explosion helper
-  const spawnParticles = (x: number, y: number, color: string, count: number = 28) => {
+  const spawnParticles = (x: number, y: number, color: string, count: number = 26) => {
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 8 + 3;
+      const speed = Math.random() * 7 + 2.5;
       particlesRef.current.push({
         x,
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         color,
-        size: Math.random() * 5 + 2,
+        size: Math.random() * 4 + 2,
         alpha: 1.0,
         life: 1.0
       });
     }
   };
 
-  // Main 3D Render Loop (Widescreen Landscape)
+  // Main 3D Render Loop (Modern AAA Widescreen Runway)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -197,61 +203,54 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       const now = performance.now() / 1000;
       const songElapsed = now - startTimeRef.current;
 
-      // Update Song Progress
       const totalDuration = song.lyrics[song.lyrics.length - 1].timingSec + 4;
       const progress = Math.min(100, Math.round((songElapsed / totalDuration) * 100));
       setSongProgressPct(progress);
 
-      // Check if song finished
       if (songElapsed > totalDuration && activeTilesRef.current.every((t) => t.resolved)) {
         if (gameState === 'playing') {
           handleGameEnd();
         }
       }
 
-      // Smooth Camera Tilt on Lane Switch
-      const targetTilt = selectedLaneRef.current === 0 ? -0.025 : 0.025;
+      // Smooth Camera Tilt
+      const targetTilt = selectedLaneRef.current === 0 ? -0.02 : 0.02;
       cameraTiltRef.current += (targetTilt - cameraTiltRef.current) * 0.12;
 
-      // Screen Shake decay
+      // Screen Shake
       let shakeX = 0;
       let shakeY = 0;
       if (screenShakeRef.current > 0.1) {
         shakeX = (Math.random() * 2 - 1) * screenShakeRef.current;
         shakeY = (Math.random() * 2 - 1) * screenShakeRef.current;
-        screenShakeRef.current *= 0.86;
+        screenShakeRef.current *= 0.85;
       }
 
       ctx.save();
       ctx.translate(shakeX, shakeY);
 
-      // 1. Clear Screen
-      ctx.fillStyle = '#040714';
+      // 1. Clear Screen — Deep Matte Carbon
+      ctx.fillStyle = '#060813';
       ctx.fillRect(0, 0, w, h);
 
-      // 2. Horizon & Synthwave Sun
-      const horizonY = h * 0.32;
+      // 2. Horizon — Atmospheric Deep Blue Minimalist Glow (No cheesy suns!)
+      const horizonY = h * 0.35;
       const cx = w / 2;
 
-      // Synthwave Neon Sun at Horizon
-      const sunGrad = ctx.createRadialGradient(cx, horizonY, 5, cx, horizonY, h * 0.35);
-      sunGrad.addColorStop(0, 'rgba(244, 114, 182, 0.45)');
-      sunGrad.addColorStop(0.35, 'rgba(168, 85, 247, 0.25)');
-      sunGrad.addColorStop(0.7, 'rgba(56, 189, 248, 0.08)');
-      sunGrad.addColorStop(1, 'rgba(4, 7, 20, 0)');
-      ctx.fillStyle = sunGrad;
-      ctx.fillRect(0, 0, w, horizonY + 80);
+      const horizonGlow = ctx.createLinearGradient(0, horizonY - 60, 0, horizonY + 20);
+      horizonGlow.addColorStop(0, 'rgba(6, 8, 19, 0)');
+      horizonGlow.addColorStop(0.7, 'rgba(30, 58, 138, 0.18)');
+      horizonGlow.addColorStop(1, 'rgba(6, 8, 19, 0)');
+      ctx.fillStyle = horizonGlow;
+      ctx.fillRect(0, horizonY - 60, w, 80);
 
-      // Sun Sphere
-      const sunRad = Math.min(64, h * 0.16);
-      const sunBallGrad = ctx.createLinearGradient(cx, horizonY - sunRad, cx, horizonY + sunRad);
-      sunBallGrad.addColorStop(0, '#fde047');
-      sunBallGrad.addColorStop(0.6, '#f43f5e');
-      sunBallGrad.addColorStop(1, '#8b5cf6');
-      ctx.fillStyle = sunBallGrad;
-      ctx.beginPath();
-      ctx.arc(cx, horizonY - 4, sunRad, Math.PI, 0); // Half sun sinking on horizon
-      ctx.fill();
+      // Subtle Distant Star Dust
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      for (let i = 0; i < 16; i++) {
+        const sx = ((i * 137.5) % w);
+        const sy = (i * 29) % horizonY;
+        ctx.fillRect(sx, sy, 1.5, 1.5);
+      }
 
       // Camera Tilt Matrix
       ctx.save();
@@ -259,17 +258,17 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       ctx.rotate(cameraTiltRef.current);
       ctx.translate(-cx, -horizonY);
 
-      // 3. Widescreen Highway Geometry
+      // 3. Precision Runway Geometry
       const roadTopWidth = w * 0.14;
-      const roadBottomWidth = Math.min(w * 0.92, 1080);
-      const hitY = h * 0.82;
+      const roadBottomWidth = Math.min(w * 0.88, 1000);
+      const hitY = h * 0.83;
 
       const pTopLeft = { x: cx - roadTopWidth / 2, y: horizonY };
       const pTopRight = { x: cx + roadTopWidth / 2, y: horizonY };
       const pBottomLeft = { x: cx - roadBottomWidth / 2, y: h };
       const pBottomRight = { x: cx + roadBottomWidth / 2, y: h };
 
-      // Road Surface
+      // Dark Metallic Asphalt Road Surface
       ctx.beginPath();
       ctx.moveTo(pTopLeft.x, pTopLeft.y);
       ctx.lineTo(pTopRight.x, pTopRight.y);
@@ -278,16 +277,16 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       ctx.closePath();
 
       const roadGrad = ctx.createLinearGradient(0, horizonY, 0, h);
-      roadGrad.addColorStop(0, '#060a22');
-      roadGrad.addColorStop(1, '#0e153b');
+      roadGrad.addColorStop(0, '#090d1e');
+      roadGrad.addColorStop(1, '#0e152e');
       ctx.fillStyle = roadGrad;
       ctx.fill();
 
-      // Road Guide Rails (Neon Cyan & Magenta)
-      ctx.lineWidth = 4;
-      ctx.shadowBlur = 20;
+      // Precision Laser Guide Rails (Left: Electric Blue, Right: Warm Amber)
+      ctx.lineWidth = 3.5;
+      ctx.shadowBlur = 16;
 
-      // Left Rail (Cyan)
+      // Left Rail (Electric Blue #38bdf8)
       ctx.shadowColor = '#38bdf8';
       ctx.strokeStyle = '#38bdf8';
       ctx.beginPath();
@@ -295,19 +294,19 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       ctx.lineTo(pBottomLeft.x, pBottomLeft.y);
       ctx.stroke();
 
-      // Right Rail (Magenta)
-      ctx.shadowColor = '#f472b6';
-      ctx.strokeStyle = '#f472b6';
+      // Right Rail (Warm Amber #f59e0b)
+      ctx.shadowColor = '#f59e0b';
+      ctx.strokeStyle = '#f59e0b';
       ctx.beginPath();
       ctx.moveTo(pTopRight.x, pTopRight.y);
       ctx.lineTo(pBottomRight.x, pBottomRight.y);
       ctx.stroke();
 
-      // Center Divider (Dashed)
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#818cf8';
-      ctx.strokeStyle = 'rgba(129, 140, 248, 0.45)';
-      ctx.setLineDash([16, 16]);
+      // Center Divider (Subtle Minimalist Dashed)
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = '#64748b';
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+      ctx.setLineDash([14, 14]);
       ctx.beginPath();
       ctx.moveTo(cx, horizonY);
       ctx.lineTo(cx, h);
@@ -315,11 +314,11 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       ctx.setLineDash([]);
       ctx.shadowBlur = 0;
 
-      // Perspective Speed Grid Lines
+      // Road Speed Pulse Lines
       roadScrollRef.current = (roadScrollRef.current + (song.bpm / 60) * 0.045) % 1;
-      const numSpeedLines = 9;
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.18)';
-      ctx.lineWidth = 2;
+      const numSpeedLines = 8;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
+      ctx.lineWidth = 1.5;
       for (let i = 0; i < numSpeedLines; i++) {
         const lineProg = (i / numSpeedLines + roadScrollRef.current) % 1;
         const lineZ = Math.pow(lineProg, 2.3);
@@ -334,28 +333,28 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       // 4. Hit Zone / Target Line
       const hitLineWidth =
         roadTopWidth + (roadBottomWidth - roadTopWidth) * ((hitY - horizonY) / (h - horizonY));
-      ctx.shadowBlur = 25;
+      ctx.shadowBlur = 20;
       ctx.shadowColor = '#38bdf8';
       ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 4;
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
       ctx.moveTo(cx - hitLineWidth / 2, hitY);
       ctx.lineTo(cx + hitLineWidth / 2, hitY);
       ctx.stroke();
       ctx.shadowBlur = 0;
 
-      // Player Indicator Pad at Hit Zone
+      // Player Lane Indicator Pad
       const playerLane = selectedLaneRef.current;
       const halfLaneWidth = hitLineWidth / 4;
       const playerIndicatorX = playerLane === 0 ? cx - halfLaneWidth : cx + halfLaneWidth;
 
       if (level === 2) {
         ctx.fillStyle =
-          playerLane === 0 ? 'rgba(56, 189, 248, 0.65)' : 'rgba(244, 114, 182, 0.65)';
-        ctx.shadowBlur = 30;
-        ctx.shadowColor = playerLane === 0 ? '#38bdf8' : '#f472b6';
+          playerLane === 0 ? 'rgba(56, 189, 248, 0.55)' : 'rgba(245, 158, 11, 0.55)';
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = playerLane === 0 ? '#38bdf8' : '#f59e0b';
         ctx.beginPath();
-        ctx.ellipse(playerIndicatorX, hitY, halfLaneWidth * 0.8, 16, 0, 0, Math.PI * 2);
+        ctx.ellipse(playerIndicatorX, hitY, halfLaneWidth * 0.75, 14, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
       }
@@ -382,7 +381,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
         const scale = 0.4 + 0.6 * nonLinearZ;
 
         if (level === 2) {
-          // --- LEVEL 2: DUAL-CHOICE WIDESCREEN RUNNER ---
+          // --- LEVEL 2: DUAL-CHOICE RUNNER ---
           const laneOffset = currentRoadW / 4;
           const leftX = cx - laneOffset;
           const rightX = cx + laneOffset;
@@ -394,20 +393,20 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
 
           // German Word Floating Banner Above Gates
           ctx.save();
-          ctx.translate(cx, tileY - 48 * scale);
+          ctx.translate(cx, tileY - 44 * scale);
           ctx.scale(scale, scale);
-          ctx.fillStyle = 'rgba(2, 6, 23, 0.94)';
+          ctx.fillStyle = 'rgba(10, 15, 30, 0.95)';
           ctx.strokeStyle = '#facc15';
-          ctx.lineWidth = 2.5;
-          ctx.shadowBlur = 18;
+          ctx.lineWidth = 2;
+          ctx.shadowBlur = 14;
           ctx.shadowColor = '#facc15';
           ctx.beginPath();
-          ctx.roundRect(-160, -22, 320, 44, 12);
+          ctx.roundRect(-150, -20, 300, 40, 10);
           ctx.fill();
           ctx.stroke();
           ctx.shadowBlur = 0;
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 20px system-ui, sans-serif';
+          ctx.font = 'bold 18px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillText(tile.lyric.german, 0, 0);
@@ -419,7 +418,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
           // Gate 1 (Right Lane)
           renderChoiceGate(ctx, rightX, tileY, scale, rightText, 1, selectedLaneRef.current === 1);
 
-          // Strike Line Judgment Trigger
+          // Strike Line Judgment
           if (timeUntilHit <= 0.05 && !tile.resolved) {
             tile.resolved = true;
             const chosen = selectedLaneRef.current;
@@ -429,45 +428,45 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
             tile.result = isCorrect ? 'perfect' : 'miss';
 
             if (isCorrect) {
-              spawnParticles(chosenX, hitY, '#38bdf8', 32);
+              spawnParticles(chosenX, hitY, '#38bdf8', 28);
               audioEngineRef.current?.playHitFx(true);
               audioEngineRef.current?.speakGermanLyric(tile.lyric.german, false);
-              screenShakeRef.current = 6;
+              screenShakeRef.current = 5;
             } else {
-              spawnParticles(chosenX, hitY, '#ef4444', 18);
+              spawnParticles(chosenX, hitY, '#ef4444', 16);
               audioEngineRef.current?.playMissFx();
-              screenShakeRef.current = 8;
+              screenShakeRef.current = 7;
             }
             handleTileHit(tile, isCorrect);
           }
         } else if (level === 3) {
-          // --- LEVEL 3: VOICE ARENA WIDESCREEN ---
+          // --- LEVEL 3: VOICE ARENA ---
           ctx.save();
           ctx.translate(cx, tileY);
           ctx.scale(scale, scale);
 
-          const cardW = 300;
-          const cardH = 74;
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
-          ctx.strokeStyle = '#c084fc';
-          ctx.lineWidth = 3;
-          ctx.shadowBlur = 24;
-          ctx.shadowColor = '#c084fc';
+          const cardW = 280;
+          const cardH = 70;
+          ctx.fillStyle = 'rgba(10, 15, 30, 0.95)';
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2.5;
+          ctx.shadowBlur = 18;
+          ctx.shadowColor = '#38bdf8';
           ctx.beginPath();
-          ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 14);
+          ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 12);
           ctx.fill();
           ctx.stroke();
 
           ctx.shadowBlur = 0;
           ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 24px system-ui, sans-serif';
+          ctx.font = 'bold 22px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(tile.lyric.german, 0, -10);
+          ctx.fillText(tile.lyric.german, 0, -8);
 
-          ctx.fillStyle = '#e9d5ff';
-          ctx.font = '700 14px system-ui, sans-serif';
-          ctx.fillText(`[ ${tile.lyric.phoneticGuide} ]`, 0, 18);
+          ctx.fillStyle = '#93c5fd';
+          ctx.font = '700 13px system-ui, sans-serif';
+          ctx.fillText(`[ ${tile.lyric.phoneticGuide} ]`, 0, 16);
           ctx.restore();
 
           if (timeUntilHit < 0.9 && timeUntilHit > -0.2) {
@@ -481,13 +480,13 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
 
             tile.result = isMatch ? 'perfect' : 'miss';
             if (isMatch) {
-              spawnParticles(cx, hitY, '#c084fc', 36);
+              spawnParticles(cx, hitY, '#38bdf8', 30);
               audioEngineRef.current?.playHitFx(true);
-              screenShakeRef.current = 6;
+              screenShakeRef.current = 5;
             } else {
-              spawnParticles(cx, hitY, '#ef4444', 20);
+              spawnParticles(cx, hitY, '#ef4444', 16);
               audioEngineRef.current?.playMissFx();
-              screenShakeRef.current = 8;
+              screenShakeRef.current = 7;
             }
             handleTileHit(tile, isMatch);
             voiceRaterRef.current?.resetTranscript();
@@ -495,13 +494,13 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
         }
       });
 
-      // 6. Particle Emitter Simulation
+      // 6. Particle Emitter
       for (let i = particlesRef.current.length - 1; i >= 0; i--) {
         const p = particlesRef.current[i];
         p.x += p.vx;
         p.y += p.vy;
-        p.alpha -= 0.032;
-        p.life -= 0.032;
+        p.alpha -= 0.035;
+        p.life -= 0.035;
 
         if (p.alpha <= 0) {
           particlesRef.current.splice(i, 1);
@@ -516,8 +515,8 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
         ctx.globalAlpha = 1.0;
       }
 
-      ctx.restore(); // Restore Camera Tilt Matrix
-      ctx.restore(); // Restore Screen Shake Matrix
+      ctx.restore(); // Restore Tilt
+      ctx.restore(); // Restore Shake
 
       animationFrameRef.current = requestAnimationFrame(render);
     };
@@ -532,7 +531,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
     };
   }, [song, level, gameState]);
 
-  // Choice Gate Render
+  // Choice Gate Render — Sleek Frosted Glass
   const renderChoiceGate = (
     ctx: CanvasRenderingContext2D,
     x: number,
@@ -546,16 +545,21 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
     ctx.translate(x, y);
     ctx.scale(scale, scale);
 
-    const gateW = 160;
-    const gateH = 58;
+    const gateW = 150;
+    const gateH = 54;
 
-    ctx.fillStyle = isSelected ? 'rgba(30, 58, 138, 0.95)' : 'rgba(15, 23, 42, 0.9)';
-    ctx.strokeStyle = laneIndex === 0 ? '#38bdf8' : '#f472b6';
-    ctx.lineWidth = isSelected ? 3.5 : 2;
+    ctx.fillStyle = isSelected
+      ? laneIndex === 0
+        ? 'rgba(30, 58, 138, 0.95)'
+        : 'rgba(120, 53, 15, 0.95)'
+      : 'rgba(15, 23, 42, 0.9)';
+
+    ctx.strokeStyle = laneIndex === 0 ? '#38bdf8' : '#f59e0b';
+    ctx.lineWidth = isSelected ? 3 : 1.5;
 
     if (isSelected) {
-      ctx.shadowBlur = 24;
-      ctx.shadowColor = laneIndex === 0 ? '#38bdf8' : '#f472b6';
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = laneIndex === 0 ? '#38bdf8' : '#f59e0b';
     }
 
     ctx.beginPath();
@@ -565,7 +569,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
 
     ctx.shadowBlur = 0;
     ctx.fillStyle = isSelected ? '#ffffff' : '#cbd5e1';
-    ctx.font = 'bold 15px system-ui, sans-serif';
+    ctx.font = 'bold 14px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(text, 0, 0);
@@ -633,7 +637,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        background: '#040711',
+        background: '#060813',
         zIndex: 100,
         display: 'flex',
         flexDirection: 'column',
@@ -649,21 +653,21 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
           left: 0,
           right: 0,
           zIndex: 20,
-          height: '54px',
+          height: '52px',
           padding: '0 20px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          background: 'linear-gradient(to bottom, rgba(4,7,17,0.95), rgba(4,7,17,0))'
+          background: 'linear-gradient(to bottom, rgba(6,8,19,0.95), rgba(6,8,19,0))'
         }}
       >
-        {/* Left: Song Info */}
+        {/* Left: Exit & Song */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
             onClick={onExit}
             style={{
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: '50%',
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.12)',
@@ -674,7 +678,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
               cursor: 'pointer'
             }}
           >
-            <X size={16} />
+            <X size={15} />
           </button>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -688,8 +692,8 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
                   padding: '2px 8px',
                   borderRadius: '6px',
                   background:
-                    level === 2 ? 'rgba(56,189,248,0.2)' : 'rgba(168,85,247,0.2)',
-                  color: level === 2 ? '#38bdf8' : '#c084fc'
+                    level === 2 ? 'rgba(56,189,248,0.18)' : 'rgba(245,158,11,0.18)',
+                  color: level === 2 ? '#38bdf8' : '#f59e0b'
                 }}
               >
                 {level === 2 ? 'NIVEAU 2: 3D CHOICE' : 'NIVEAU 3: VOICE ARENA'}
@@ -698,17 +702,37 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
           </div>
         </div>
 
-        {/* Right: Score, Accuracy, Mute */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        {/* Right: Score, Accuracy, Fullscreen, Mute */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#38bdf8' }}>{score}</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8' }}>Acc: {currentAccuracy}%</div>
+            <div style={{ fontSize: '17px', fontWeight: 900, color: '#38bdf8' }}>{score}</div>
+            <div style={{ fontSize: '10px', color: '#94a3b8' }}>Acc: {currentAccuracy}%</div>
           </div>
+
+          <button
+            onClick={handleFullscreen}
+            title="Fullscreen Toggle"
+            style={{
+              width: '34px',
+              height: '34px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            {isFullscreenMode ? <Minimize size={15} /> : <Maximize size={15} />}
+          </button>
+
           <button
             onClick={toggleMute}
             style={{
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: '50%',
               background: 'rgba(255,255,255,0.08)',
               border: '1px solid rgba(255,255,255,0.12)',
@@ -719,7 +743,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
               cursor: 'pointer'
             }}
           >
-            {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
           </button>
         </div>
       </div>
@@ -728,7 +752,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       <div
         style={{
           position: 'absolute',
-          top: '54px',
+          top: '52px',
           left: 0,
           right: 0,
           height: '3px',
@@ -740,13 +764,13 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
           style={{
             width: `${songProgressPct}%`,
             height: '100%',
-            background: 'linear-gradient(to right, #38bdf8, #f472b6)',
+            background: 'linear-gradient(to right, #38bdf8, #f59e0b)',
             transition: 'width 0.2s linear'
           }}
         />
       </div>
 
-      {/* Floating Combo Badge */}
+      {/* Combo Badge */}
       {combo > 1 && (
         <div
           style={{
@@ -758,47 +782,46 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '4px 16px',
+            padding: '4px 14px',
             borderRadius: '20px',
-            background: 'rgba(234, 179, 8, 0.2)',
-            border: '1px solid rgba(234, 179, 8, 0.5)',
-            color: '#facc15',
+            background: 'rgba(245, 158, 11, 0.2)',
+            border: '1px solid rgba(245, 158, 11, 0.5)',
+            color: '#f59e0b',
             fontSize: '13px',
-            fontWeight: 900,
-            boxShadow: '0 0 20px rgba(234, 179, 8, 0.3)'
+            fontWeight: 900
           }}
         >
-          <Flame size={15} />
+          <Flame size={14} />
           <span>COMBO x{combo}</span>
         </div>
       )}
 
-      {/* Level 3 Voice Indicator */}
+      {/* Level 3 Voice Prompt */}
       {level === 3 && (
         <div
           style={{
             position: 'absolute',
-            top: '100px',
+            top: '96px',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 20,
             background: 'rgba(15, 23, 42, 0.9)',
-            border: '1px solid rgba(168, 85, 247, 0.4)',
+            border: '1px solid rgba(56, 189, 248, 0.4)',
             borderRadius: '24px',
-            padding: '6px 20px',
+            padding: '6px 18px',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            color: '#d8b4fe',
-            fontSize: '13px'
+            color: '#93c5fd',
+            fontSize: '12px'
           }}
         >
-          <Mic size={16} color="#c084fc" />
+          <Mic size={15} color="#38bdf8" />
           <span>
             Qra b sawt 3ali: <strong>{currentPromptWord || '...'}</strong>
           </span>
           {liveTranscript && (
-            <span style={{ color: '#38bdf8', fontStyle: 'italic' }}>({liveTranscript})</span>
+            <span style={{ color: '#facc15', fontStyle: 'italic' }}>({liveTranscript})</span>
           )}
         </div>
       )}
@@ -816,10 +839,9 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
         }}
       />
 
-      {/* Two-Thumb Mobile Touch Pads (Bottom Corners) */}
+      {/* Two-Thumb Mobile Touch Pads */}
       {level === 2 && gameState === 'playing' && (
         <>
-          {/* Left Thumb Pad (Gate 1) */}
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -827,28 +849,27 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
             }}
             style={{
               position: 'absolute',
-              bottom: '20px',
-              left: '24px',
+              bottom: '18px',
+              left: '22px',
               zIndex: 30,
-              padding: '14px 28px',
-              borderRadius: '16px',
+              padding: '12px 24px',
+              borderRadius: '14px',
               background:
                 selectedLane === 0
                   ? 'linear-gradient(135deg, rgba(56,189,248,0.5), rgba(14,165,233,0.3))'
-                  : 'rgba(15, 23, 42, 0.8)',
+                  : 'rgba(15, 23, 42, 0.85)',
               border: selectedLane === 0 ? '2px solid #38bdf8' : '1px solid rgba(56,189,248,0.3)',
               color: '#ffffff',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 900,
               cursor: 'pointer',
-              boxShadow: selectedLane === 0 ? '0 0 25px rgba(56,189,248,0.4)' : 'none',
+              boxShadow: selectedLane === 0 ? '0 0 20px rgba(56,189,248,0.4)' : 'none',
               transition: 'all 0.1s ease'
             }}
           >
             ← KHIYAR 1
           </div>
 
-          {/* Right Thumb Pad (Gate 2) */}
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -856,21 +877,21 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
             }}
             style={{
               position: 'absolute',
-              bottom: '20px',
-              right: '24px',
+              bottom: '18px',
+              right: '22px',
               zIndex: 30,
-              padding: '14px 28px',
-              borderRadius: '16px',
+              padding: '12px 24px',
+              borderRadius: '14px',
               background:
                 selectedLane === 1
-                  ? 'linear-gradient(135deg, rgba(244,114,182,0.5), rgba(217,70,239,0.3))'
-                  : 'rgba(15, 23, 42, 0.8)',
-              border: selectedLane === 1 ? '2px solid #f472b6' : '1px solid rgba(244,114,182,0.3)',
+                  ? 'linear-gradient(135deg, rgba(245,158,11,0.5), rgba(217,119,6,0.3))'
+                  : 'rgba(15, 23, 42, 0.85)',
+              border: selectedLane === 1 ? '2px solid #f59e0b' : '1px solid rgba(245,158,11,0.3)',
               color: '#ffffff',
-              fontSize: '14px',
+              fontSize: '13px',
               fontWeight: 900,
               cursor: 'pointer',
-              boxShadow: selectedLane === 1 ? '0 0 25px rgba(244,114,182,0.4)' : 'none',
+              boxShadow: selectedLane === 1 ? '0 0 20px rgba(245,158,11,0.4)' : 'none',
               transition: 'all 0.1s ease'
             }}
           >
@@ -886,7 +907,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
             position: 'absolute',
             inset: 0,
             zIndex: 50,
-            background: 'rgba(4, 7, 17, 0.95)',
+            background: 'rgba(6, 8, 19, 0.95)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -896,8 +917,8 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
           <div
             style={{
               width: '100%',
-              maxWidth: '460px',
-              background: 'linear-gradient(135deg, #090e24, #121838)',
+              maxWidth: '440px',
+              background: 'linear-gradient(135deg, #0b1124, #121832)',
               border: '1px solid rgba(56, 189, 248, 0.3)',
               borderRadius: '24px',
               padding: '24px',
@@ -907,8 +928,8 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
           >
             <div
               style={{
-                width: '56px',
-                height: '56px',
+                width: '54px',
+                height: '54px',
                 margin: '0 auto 12px',
                 borderRadius: '50%',
                 background:
@@ -923,17 +944,10 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
                 color: endResult.accuracy >= 100 ? '#facc15' : '#38bdf8'
               }}
             >
-              {endResult.becameMastered ? <Trophy size={28} /> : <Award size={28} />}
+              {endResult.becameMastered ? <Trophy size={26} /> : <Award size={26} />}
             </div>
 
-            <h2
-              style={{
-                fontSize: '20px',
-                fontWeight: 900,
-                color: '#ffffff',
-                marginBottom: '4px'
-              }}
-            >
+            <h2 style={{ fontSize: '19px', fontWeight: 900, color: '#ffffff', marginBottom: '4px' }}>
               {endResult.accuracy >= 100 ? 'FLAWLESS RUN! 100%' : 'GOOD EFFORT!'}
             </h2>
             <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>
@@ -951,7 +965,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
                 }}
               >
                 <div style={{ fontSize: '10px', color: '#94a3b8' }}>Score</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: '#38bdf8' }}>
+                <div style={{ fontSize: '17px', fontWeight: 900, color: '#38bdf8' }}>
                   {endResult.score}
                 </div>
               </div>
@@ -968,7 +982,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
                 <div style={{ fontSize: '10px', color: '#94a3b8' }}>Accuracy</div>
                 <div
                   style={{
-                    fontSize: '18px',
+                    fontSize: '17px',
                     fontWeight: 900,
                     color: endResult.accuracy >= 100 ? '#4ade80' : '#facc15'
                   }}
@@ -987,20 +1001,19 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
                 }}
               >
                 <div style={{ fontSize: '10px', color: '#94a3b8' }}>Max Combo</div>
-                <div style={{ fontSize: '18px', fontWeight: 900, color: '#f472b6' }}>
+                <div style={{ fontSize: '17px', fontWeight: 900, color: '#f59e0b' }}>
                   x{maxCombo}
                 </div>
               </div>
             </div>
 
-            {/* Streak & Unlock Box */}
             <div
               style={{
                 background: 'rgba(15, 23, 42, 0.7)',
                 border: '1px solid rgba(255, 255, 255, 0.1)',
                 borderRadius: '14px',
                 padding: '12px',
-                marginBottom: '20px',
+                marginBottom: '18px',
                 fontSize: '12px'
               }}
             >
@@ -1011,7 +1024,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
                     <span style={{ color: '#facc15' }}>{endResult.perfectStreak} / 10</span>
                   </div>
                   {endResult.unlockedNext ? (
-                    <div style={{ color: '#c084fc', fontWeight: 800 }}>
+                    <div style={{ color: '#38bdf8', fontWeight: 800 }}>
                       🎉 Félicitations! Jbti 100% 10 lmrat! Niveau 3 (Voice Arena) t7ell!
                     </div>
                   ) : (
@@ -1026,7 +1039,7 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
                 <div>
                   <div style={{ color: '#ffffff', fontWeight: 800, marginBottom: '4px' }}>
                     Voice Mastery Streak:{' '}
-                    <span style={{ color: '#c084fc' }}>{endResult.perfectStreak} / 10</span>
+                    <span style={{ color: '#38bdf8' }}>{endResult.perfectStreak} / 10</span>
                   </div>
                   {endResult.becameMastered ? (
                     <div style={{ color: '#facc15', fontWeight: 900 }}>
@@ -1041,7 +1054,6 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
               )}
             </div>
 
-            {/* Actions */}
             <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={() => {

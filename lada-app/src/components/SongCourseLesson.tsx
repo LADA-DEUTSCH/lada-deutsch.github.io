@@ -6,10 +6,13 @@ import {
   ChevronLeft,
   ChevronRight,
   HelpCircle,
-  Play
+  Play,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 import type { SongDefinition } from '../types';
 import { recordLevelResult } from '../services/gameProgressStorage';
+import { toggleFullscreen, isFullscreen } from '../services/fullscreenUtils';
 
 interface SongCourseLessonProps {
   song: SongDefinition;
@@ -28,6 +31,7 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
   const [quizStep, setQuizStep] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [isFullscreenMode, setIsFullscreenMode] = useState(isFullscreen());
 
   const currentLyric = song.lyrics[currentIndex];
   const totalLyrics = song.lyrics.length;
@@ -185,22 +189,47 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
           ))}
         </div>
 
-        {/* Audio Speed Toggle */}
-        <button
-          onClick={() => setIsSlow(!isSlow)}
-          style={{
-            fontSize: '11px',
-            fontWeight: 700,
-            padding: '5px 12px',
-            borderRadius: '16px',
-            background: isSlow ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.08)',
-            border: isSlow ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
-            color: isSlow ? '#38bdf8' : '#94a3b8',
-            cursor: 'pointer'
-          }}
-        >
-          {isSlow ? '🐢 B chwiya (0.75x)' : '⚡ 3adi (1.0x)'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Audio Speed Toggle */}
+          <button
+            onClick={() => setIsSlow(!isSlow)}
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              padding: '5px 12px',
+              borderRadius: '16px',
+              background: isSlow ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255,255,255,0.08)',
+              border: isSlow ? '1px solid #38bdf8' : '1px solid rgba(255,255,255,0.15)',
+              color: isSlow ? '#38bdf8' : '#94a3b8',
+              cursor: 'pointer'
+            }}
+          >
+            {isSlow ? '🐢 B chwiya (0.75x)' : '⚡ 3adi (1.0x)'}
+          </button>
+
+          {/* Fullscreen Button */}
+          <button
+            onClick={() => {
+              toggleFullscreen();
+              setIsFullscreenMode(!isFullscreenMode);
+            }}
+            title="Plein Écran"
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.15)',
+              color: '#38bdf8',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer'
+            }}
+          >
+            {isFullscreenMode ? <Minimize size={14} /> : <Maximize size={14} />}
+          </button>
+        </div>
       </div>
 
       {/* Main Widescreen Split Stage */}

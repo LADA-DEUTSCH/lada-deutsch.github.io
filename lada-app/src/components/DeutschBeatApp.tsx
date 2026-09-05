@@ -9,7 +9,9 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 import type { SongDefinition } from '../types';
 import { getAllSongs } from '../services/songCurriculum';
@@ -21,6 +23,7 @@ import {
 import { SongCourseLesson } from './SongCourseLesson';
 import { Beat3DHighway } from './Beat3DHighway';
 import { OrientationGuard } from './OrientationGuard';
+import { toggleFullscreen, isFullscreen } from '../services/fullscreenUtils';
 
 interface DeutschBeatAppProps {
   onLockVault: () => void;
@@ -32,6 +35,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = ({ onLockVault }) =
   const [activeMode, setActiveMode] = useState<'catalog' | 'course' | 'runner'>('catalog');
   const [activeLevel, setActiveLevel] = useState<2 | 3>(2);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isFullscreenMode, setIsFullscreenMode] = useState(isFullscreen());
 
   const activeSong = songs[activeSongIndex] || songs[0];
 
@@ -201,6 +205,29 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = ({ onLockVault }) =
               <Trophy size={14} />
               <span>Mastered: 👑 {masteredCount} / 20</span>
             </div>
+
+            {/* Fullscreen Button */}
+            <button
+              onClick={() => {
+                toggleFullscreen();
+                setIsFullscreenMode(!isFullscreenMode);
+              }}
+              title="Plein Écran"
+              style={{
+                width: '34px',
+                height: '34px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.08)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                color: '#38bdf8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer'
+              }}
+            >
+              {isFullscreenMode ? <Minimize size={15} /> : <Maximize size={15} />}
+            </button>
 
             {/* Lock Vault */}
             <button
