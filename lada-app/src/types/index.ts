@@ -138,7 +138,7 @@ export interface LearnerProfile {
 }
 
 // --- 3D Beat Deutsch Game Models ---
-export type InstrumentType = 'piano' | 'acoustic_guitar' | 'synthwave' | 'chillhop' | 'funk_bass' | 'moroccan_beat';
+export type InstrumentType = 'piano' | 'acoustic_guitar' | 'synthwave' | 'chillhop' | 'funk_bass' | 'moroccan_beat' | 'synth_lead';
 
 export interface RealDialogueSnippet {
   speakerA: string;
@@ -160,7 +160,10 @@ export interface SongLyricItem {
   phoneticSecret?: string;
   moroccanTrap?: string;
   realDialogue?: RealDialogueSnippet;
+  darija?: string;
+  darijaArabic?: string;
 }
+
 
 export interface SongDefinition {
   id: string;

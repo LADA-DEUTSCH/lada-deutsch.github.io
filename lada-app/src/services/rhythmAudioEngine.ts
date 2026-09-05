@@ -453,7 +453,8 @@ export class RhythmAudioEngine implements IRhythmAudioEngine {
   }
 
   /**
-   * Low dissonant buzz / noise drop for a missed note.
+   * Authentic vinyl record-scratch & audio glitch effect for mistakes.
+   * Synthesized in real-time via Web Audio API bandpass filter sweep & pitch plunge.
    */
   public playMissFx(): void {
     if (this.isMuted) return;
@@ -461,20 +462,63 @@ export class RhythmAudioEngine implements IRhythmAudioEngine {
     const dest = this.sfxGain ?? this.masterGain ?? ctx.destination;
     const t = ctx.currentTime;
 
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    // 1. Synthesize Vinyl Record Friction (Bandpass noise scratch)
+    if (!this.noiseBuffer) {
+      const bufferSize = ctx.sampleRate * 0.3;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+      this.noiseBuffer = buffer;
+    }
 
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(140, t);
-    osc.frequency.exponentialRampToValueAtTime(55, t + 0.2);
+    const noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = this.noiseBuffer;
 
-    gain.gain.setValueAtTime(0.2, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'bandpass';
+    noiseFilter.Q.setValueAtTime(4.0, t);
+    noiseFilter.frequency.setValueAtTime(3200, t);
+    noiseFilter.frequency.exponentialRampToValueAtTime(180, t + 0.22);
 
-    osc.connect(gain);
-    gain.connect(dest);
-    osc.start(t);
-    osc.stop(t + 0.23);
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.35, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+
+    noiseSource.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(dest);
+
+    noiseSource.start(t);
+    noiseSource.stop(t + 0.25);
+
+    // 2. Vinyl Turntable Motor Stop Glitch (Dissonant double-oscillator pitch brake)
+    const osc1 = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const glitchGain = ctx.createGain();
+
+    osc1.type = 'sawtooth';
+    osc2.type = 'triangle';
+
+    // Sudden rapid deceleration pitch bend
+    osc1.frequency.setValueAtTime(260, t);
+    osc1.frequency.exponentialRampToValueAtTime(30, t + 0.25);
+
+    osc2.frequency.setValueAtTime(275, t); // Dissonant beating
+    osc2.frequency.exponentialRampToValueAtTime(32, t + 0.25);
+
+    glitchGain.gain.setValueAtTime(0.28, t);
+    glitchGain.gain.exponentialRampToValueAtTime(0.001, t + 0.26);
+
+    osc1.connect(glitchGain);
+    osc2.connect(glitchGain);
+    glitchGain.connect(dest);
+
+    osc1.start(t);
+    osc2.start(t);
+    osc1.stop(t + 0.27);
+    osc2.stop(t + 0.27);
   }
 
   /**

@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { EffectComposer, Bloom, ChromaticAberration, Glitch } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { useRhythmGameStore } from '../../store/useRhythmGameStore';
 
@@ -13,6 +13,14 @@ interface Spark {
   vel: THREE.Vector3;
   life: number;
   maxLife: number;
+  color: THREE.Color;
+}
+
+interface ShockwaveRing {
+  id: number;
+  x: number;
+  scale: number;
+  opacity: number;
   color: THREE.Color;
 }
 
@@ -38,18 +46,46 @@ export const HighwayEffects: React.FC<HighwayEffectsProps> = ({ bpm = 120 }) => 
   const selectedLane = useRhythmGameStore((s) => s.selectedLane);
   const lastFeedbackTimeRef = useRef<number>(0);
 
-  // Trigger spark explosion on new hit feedback
+  // Shockwave Rings simulation
+  const shockwavesRef = useRef<ShockwaveRing[]>([]);
+  const ringGroupRef = useRef<THREE.Group>(null);
+
+  // Glitch / Error postprocessing states
+  const [isGlitching, setIsGlitching] = useState<boolean>(false);
+  const [aberrationOffset, setAberrationOffset] = useState<number>(0.001);
+
+  // Trigger spark explosion, shockwave, or glitch on new hit feedback
   useEffect(() => {
     if (!hitFeedback || hitFeedback.timestamp === lastFeedbackTimeRef.current) return;
     lastFeedbackTimeRef.current = hitFeedback.timestamp;
 
-    if (hitFeedback.text === 'MISS') return; // Only spark on success hits
-
     const originX = selectedLane === 0 ? -2.2 : 2.2;
+
+    // A. Mistake: Trigger chromatic glitch burst
+    if (hitFeedback.text === 'MISS') {
+      setIsGlitching(true);
+      setAberrationOffset(0.015); // Intense chromatic aberration
+      const timer = setTimeout(() => {
+        setIsGlitching(false);
+        setAberrationOffset(0.001);
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+
+    // B. Perfect / Good: Spawn Neon Shockwave Ring + Sparks
     const isPerfect = hitFeedback.text.includes('PERFECT');
     const burstColor = new THREE.Color(isPerfect ? '#38bdf8' : '#10b981');
-    const sparkCount = isPerfect ? 40 : 25;
 
+    // Add expanding shockwave ring
+    shockwavesRef.current.push({
+      id: Date.now() + Math.random(),
+      x: originX,
+      scale: 0.3,
+      opacity: 1.0,
+      color: burstColor
+    });
+
+    const sparkCount = isPerfect ? 40 : 25;
     for (let i = 0; i < sparkCount; i++) {
       if (sparksRef.current.length >= MAX_SPARKS) {
         sparksRef.current.shift(); // Evict oldest
@@ -81,7 +117,39 @@ export const HighwayEffects: React.FC<HighwayEffectsProps> = ({ bpm = 120 }) => 
       tempoLightRef.current.color.setHSL(0.5 + pulse * 0.3, 1.0, 0.6);
     }
 
-    // 2. Physics & Particle Life Update
+    // 2. Animate Shockwave Rings
+    const shockwaves = shockwavesRef.current;
+    for (let i = shockwaves.length - 1; i >= 0; i--) {
+      const sw = shockwaves[i];
+      sw.scale += delta * 9.0;
+      sw.opacity -= delta * 2.2;
+      if (sw.opacity <= 0) {
+        shockwaves.splice(i, 1);
+      }
+    }
+
+    // Update shockwave meshes in group if present
+    if (ringGroupRef.current) {
+      const children = ringGroupRef.current.children;
+      for (let i = 0; i < children.length; i++) {
+        const mesh = children[i] as THREE.Mesh;
+        const sw = shockwaves[i];
+        if (sw && mesh) {
+          mesh.visible = true;
+          mesh.position.set(sw.x, 0.1, 0);
+          mesh.scale.set(sw.scale, sw.scale, sw.scale);
+          const mat = mesh.material as THREE.MeshBasicMaterial;
+          if (mat) {
+            mat.color = sw.color;
+            mat.opacity = Math.max(0, sw.opacity);
+          }
+        } else if (mesh) {
+          mesh.visible = false;
+        }
+      }
+    }
+
+    // 3. Physics & Particle Life Update
     const points = pointsRef.current;
     if (!points) return;
 
@@ -159,6 +227,23 @@ export const HighwayEffects: React.FC<HighwayEffectsProps> = ({ bpm = 120 }) => 
         distance={35}
       />
 
+      {/* ─── EXPANDING NEON SHOCKWAVE RINGS POOL ─── */}
+      <group ref={ringGroupRef}>
+        {[0, 1, 2, 3, 4].map((idx) => (
+          <mesh key={idx} rotation={[-Math.PI / 2, 0, 0]} visible={false}>
+            <ringGeometry args={[0.8, 1.05, 32]} />
+            <meshBasicMaterial
+              color="#38bdf8"
+              transparent
+              opacity={0.8}
+              blending={THREE.AdditiveBlending}
+              side={THREE.DoubleSide}
+              depthWrite={false}
+            />
+          </mesh>
+        ))}
+      </group>
+
       {/* ─── HIT BURST SPARKS PARTICLE SYSTEM ─── */}
       <points ref={pointsRef} geometry={sparkGeometry}>
         <pointsMaterial
@@ -175,13 +260,28 @@ export const HighwayEffects: React.FC<HighwayEffectsProps> = ({ bpm = 120 }) => 
       <EffectComposer enableNormalPass={false} multisampling={4}>
         <Bloom
           mipmapBlur
-          intensity={1.5}
+          intensity={isGlitching ? 2.8 : 1.5}
           luminanceThreshold={0.2}
           luminanceSmoothing={0.8}
         />
+        <ChromaticAberration
+          offset={new THREE.Vector2(aberrationOffset, aberrationOffset)}
+          radialModulation={false}
+          modulationOffset={0}
+        />
+        {isGlitching && (
+          <Glitch
+            delay={new THREE.Vector2(0, 0)}
+            duration={new THREE.Vector2(0.15, 0.25)}
+            strength={new THREE.Vector2(0.4, 0.7)}
+            active
+            ratio={0.85}
+          />
+        )}
       </EffectComposer>
     </>
   );
 };
 
 export default HighwayEffects;
+

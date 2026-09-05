@@ -10,7 +10,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Maximize,
-  Minimize
+  Minimize,
+  Skull
 } from 'lucide-react';
 import type { SongDefinition } from '../types';
 import { getAllSongs } from '../services/songCurriculum';
@@ -21,8 +22,10 @@ import {
 } from '../services/gameProgressStorage';
 import { SongCourseLesson } from './SongCourseLesson';
 import { Beat3DHighway } from './Beat3DHighway';
+import { VocalArena } from './VocalArena';
 import { OrientationGuard } from './OrientationGuard';
 import { toggleFullscreen, isFullscreen } from '../services/fullscreenUtils';
+import { getCriticalDecayWords, saveRevengeBeatmap, type VocabRecord } from '../services/sentientMemoryDb';
 
 interface DeutschBeatAppProps {
   onLockVault?: () => void;
@@ -31,10 +34,13 @@ interface DeutschBeatAppProps {
 export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
   const songs = getAllSongs();
   const [activeSongIndex, setActiveSongIndex] = useState(0);
-  const [activeMode, setActiveMode] = useState<'catalog' | 'course' | 'runner'>('catalog');
+  const [activeMode, setActiveMode] = useState<'catalog' | 'course' | 'runner' | 'vocal_arena'>('catalog');
   const [activeLevel, setActiveLevel] = useState<2 | 3>(2);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isFullscreenMode, setIsFullscreenMode] = useState(isFullscreen());
+  const [criticalWords, setCriticalWords] = useState<VocabRecord[]>([]);
+  const [isGeneratingRevenge, setIsGeneratingRevenge] = useState(false);
+  const [revengeSong, setRevengeSong] = useState<SongDefinition | null>(null);
 
   const activeSong = songs[activeSongIndex] || songs[0];
 
@@ -64,6 +70,13 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
     return () => window.removeEventListener('keydown', handleKey);
   }, [activeMode, nextSong, prevSong]);
 
+  // Check Sentient Memory for Critical Decay words
+  useEffect(() => {
+    getCriticalDecayWords().then((words) => {
+      setCriticalWords(words);
+    }).catch(() => {});
+  }, [refreshKey]);
+
   const handleOpenCourse = (song: SongDefinition) => {
     setActiveSongIndex(songs.findIndex((s) => s.id === song.id));
     setActiveMode('course');
@@ -73,10 +86,86 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
     if (!isLevelUnlocked(song.id, level)) return;
     setActiveSongIndex(songs.findIndex((s) => s.id === song.id));
     setActiveLevel(level);
-    setActiveMode('runner');
+    setActiveMode(level === 3 ? 'vocal_arena' : 'runner');
+  };
+
+  const handleLaunchRevenge = async () => {
+    setIsGeneratingRevenge(true);
+    try {
+      const words = criticalWords.map((w) => w.word);
+      const res = await fetch('/api/ai/revenge/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ criticalWords: words, currentBpm: 135 })
+      });
+
+      if (res.ok) {
+        const payload = await res.json();
+        const data = payload.data;
+        const customBossSong: SongDefinition = {
+          id: 'revenge_boss_track',
+          number: 99,
+          title: data.title || '⚡ BOSS REVENGE: DARIJA CYBER-STORM',
+          subtitle: 'Revenge Beatmap',
+          theme: 'cyber',
+          tier: 'BOSS',
+          bpm: data.bpm || 140,
+          instrument: 'synth_lead',
+          lyrics: (data.lyrics || []).map((l: any, i: number) => ({
+            id: `rev_${i}`,
+            german: l.german,
+            phoneticGuide: l.trap || 'Profi',
+            darijaCorrect: l.darija || 'zwin',
+            darijaDistractor: (l.wrongAnswers && l.wrongAnswers[0]) || 'khata2',
+            timingSec: l.time || (i + 1) * 2.2,
+            correctLane: (i % 2) as 0 | 1,
+            wrongOption: (l.wrongAnswers && l.wrongAnswers[0]) || 'khata2',
+            darija: l.darija,
+            darijaArabic: l.darijaArabic || l.darija
+          }))
+        };
+        await saveRevengeBeatmap(customBossSong);
+        setRevengeSong(customBossSong);
+        setActiveLevel(2);
+        setActiveMode('runner');
+      } else {
+        throw new Error('API failed');
+      }
+    } catch {
+      // Offline fallback boss track
+      const list = criticalWords.length > 0 ? criticalWords : [{ word: 'schön', darijaArabizi: 'zwin', darijaArabic: 'زوين' }];
+      const fallbackBossSong: SongDefinition = {
+        id: 'revenge_boss_track',
+        number: 99,
+        title: '⚡ BOSS REVENGE: DARIJA CYBER-STORM',
+        subtitle: 'Revenge Beatmap',
+        theme: 'cyber',
+        tier: 'BOSS',
+        bpm: 140,
+        instrument: 'synth_lead',
+        lyrics: list.map((w: any, i: number) => ({
+          id: `rev_${i}`,
+          german: w.word,
+          phoneticGuide: 'Fakh Phonetic',
+          darijaCorrect: w.darijaArabizi || 'mzyan',
+          darijaDistractor: 'khata2',
+          timingSec: (i + 1) * 2.2,
+          correctLane: (i % 2) as 0 | 1,
+          wrongOption: 'khata2',
+          darija: w.darijaArabizi || 'mzyan',
+          darijaArabic: w.darijaArabic || 'مزيان'
+        }))
+      };
+      setRevengeSong(fallbackBossSong);
+      setActiveLevel(2);
+      setActiveMode('runner');
+    } finally {
+      setIsGeneratingRevenge(false);
+    }
   };
 
   const handleExitToCatalog = () => {
+    setRevengeSong(null);
     setActiveMode('catalog');
     setRefreshKey((k) => k + 1);
   };
@@ -97,12 +186,28 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
     );
   }
 
-  // 2. Runner Mode (Niveau 2: 3D Choice or Niveau 3: Voice Arena)
+  // 2. Vocal Arena Mode (Niveau 3: Voice Arena)
+  if (activeMode === 'vocal_arena') {
+    return (
+      <OrientationGuard>
+        <VocalArena
+          song={activeSong}
+          onExit={handleExitToCatalog}
+          onCompleted={() => {
+            setRefreshKey((k) => k + 1);
+            handleExitToCatalog();
+          }}
+        />
+      </OrientationGuard>
+    );
+  }
+
+  // 3. Runner Mode (Niveau 2: 3D Choice or Revenge Boss Track)
   if (activeMode === 'runner') {
     return (
       <OrientationGuard>
         <Beat3DHighway
-          song={activeSong}
+          song={revengeSong || activeSong}
           level={activeLevel}
           onExit={handleExitToCatalog}
           onLevelComplete={() => setRefreshKey((k) => k + 1)}
@@ -110,6 +215,7 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
       </OrientationGuard>
     );
   }
+
 
   const activeProg = getSongProgress(activeSong.id);
   const isLvl2Unlocked = isLevelUnlocked(activeSong.id, 2);
@@ -161,10 +267,41 @@ export const DeutschBeatApp: React.FC<DeutschBeatAppProps> = () => {
               <Music size={18} color="#ffffff" />
             </div>
             <div>
-              <div className="neon-text-cyan" style={{ fontSize: '15px', fontWeight: 900 }}>
-                DEUTSCH BEAT 3D
+              <div className="neon-text-cyan" style={{ fontSize: '15px', fontWeight: 900, letterSpacing: '1px' }}>
+                NEON-POLYGLOT
+              </div>
+              <div style={{ fontSize: '10px', color: '#94a3b8' }}>
+                Creator: Bilal • للـمـغـاربـة 🇲🇦
               </div>
             </div>
+
+            {/* Dynamic Revenge Level Trigger Button */}
+            {criticalWords.length > 0 && (
+              <button
+                onClick={handleLaunchRevenge}
+                disabled={isGeneratingRevenge}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(168, 85, 247, 0.25))',
+                  border: '1.5px solid rgba(239, 68, 68, 0.6)',
+                  padding: '5px 14px',
+                  borderRadius: '20px',
+                  color: '#f87171',
+                  fontSize: '11px',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  marginLeft: '12px',
+                  boxShadow: '0 0 15px rgba(239, 68, 68, 0.3)'
+                }}
+              >
+                <Skull size={14} color="#f87171" />
+                <span>
+                  {isGeneratingRevenge ? '⚡ جاري تركيب نيفو الانتقام...' : `⚔️ معركة الانتقام (${criticalWords.length} كلمات فخ)`}
+                </span>
+              </button>
+            )}
           </div>
 
           {/* Player Career Stats */}
