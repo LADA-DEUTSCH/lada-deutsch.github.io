@@ -1,19 +1,32 @@
-// Gemini Voice & Audio Engine powered by Google Gemini API
-// Generates natural, studio-quality speech (24kHz PCM) for German words & Moroccan Darija explanations
-// Uses multi-key failover and in-memory caching to ensure blazing-fast performance and high reliability.
+// محرك الصوت الاستوديو الحقيقي ديال Google Gemini
+// Gemini 3.1 Flash TTS — Studio-Quality 24kHz PCM Audio Engine
+// Multi-key failover, in-memory caching, mutex-protected sequential playback.
 
 import { unlockVault } from './cryptoVault';
 
 export type GeminiVoiceName = 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'Aoede';
 
+// Supported model priority: newest first
+const TTS_MODELS = [
+  'gemini-3.1-flash-tts-preview',
+  'gemini-2.5-flash-preview-tts'
+];
+
 class GeminiAudioTtsService {
   private keys: string[] = [];
   private currentKeyIndex = 0;
-  private audioCache = new Map<string, string>(); // text -> base64 pcm
+  private audioCache = new Map<string, string>(); // cacheKey -> base64 pcm
   private playbackContext: AudioContext | null = null;
   private currentSource: AudioBufferSourceNode | null = null;
   private isCurrentlyPlaying = false;
   private onPlaybackStateChange: ((playing: boolean) => void) | null = null;
+
+  // Mutex: prevents concurrent calls from overlapping audio
+  private speakLock = false;
+  private abortController: AbortController | null = null;
+
+  // Track which model actually works
+  private workingModelIndex = 0;
 
   constructor() {
     this.initKeys();
@@ -60,34 +73,42 @@ class GeminiAudioTtsService {
     return this.isCurrentlyPlaying;
   }
 
+  /** Hard-stop all audio immediately */
   public stopAudio() {
+    // Cancel any in-flight fetch requests
+    if (this.abortController) {
+      try { this.abortController.abort(); } catch { /* noop */ }
+      this.abortController = null;
+    }
+
+    // Stop PCM AudioBufferSourceNode
     if (this.currentSource) {
       try {
         this.currentSource.stop();
         this.currentSource.disconnect();
-      } catch {
-        // already stopped
-      }
+      } catch { /* already stopped */ }
       this.currentSource = null;
     }
+
+    // Stop browser SpeechSynthesis fallback
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      try {
-        window.speechSynthesis.cancel();
-      } catch {
-        // ignore
-      }
+      try { window.speechSynthesis.cancel(); } catch { /* noop */ }
     }
+
     this.isCurrentlyPlaying = false;
+    this.speakLock = false;
     if (this.onPlaybackStateChange) this.onPlaybackStateChange(false);
   }
 
   /**
-   * Generates natural PCM audio from Gemini API for the given text.
+   * Generates natural PCM audio from Gemini API.
+   * Tries gemini-3.1-flash-tts-preview first, falls back to 2.5.
    * Caches results so repeated requests are instant.
    */
   public async generateAudio(
     text: string,
-    voiceName: GeminiVoiceName = 'Puck'
+    voiceName: GeminiVoiceName = 'Puck',
+    signal?: AbortSignal
   ): Promise<string | null> {
     const cacheKey = `${voiceName}:${text.trim()}`;
     if (this.audioCache.has(cacheKey)) {
@@ -97,53 +118,79 @@ class GeminiAudioTtsService {
     if (this.keys.length === 0) {
       await this.initKeys();
     }
-
     if (this.keys.length === 0) {
       return null;
     }
 
-    const promptText = `Please read aloud the following text exactly: ${text.trim()}`;
+    // Clean bracketed hints from text before speaking (e.g. "[ae]", "[ß]")
+    const cleanText = text.trim().replace(/\[.*?\]/g, '').replace(/\s+/g, ' ').trim();
+
+    // Smart prompt engineering for different text lengths
+    let promptText: string;
+    const wordCount = cleanText.split(/[\s,]+/).filter(w => w.length > 0).length;
+    const isSingleChar = cleanText.length <= 2;
+
+    if (isSingleChar) {
+      // Single letter: spell it out clearly as the German alphabet name
+      promptText = `Pronounce the German letter "${cleanText}" clearly and naturally, as a German teacher would say it.`;
+    } else if (wordCount <= 3) {
+      // Short word/phrase: clear, deliberate pronunciation
+      promptText = `Clearly say the following German word: "${cleanText}"`;
+    } else {
+      // Full sentence: natural reading
+      promptText = `Read aloud the following German text naturally: ${cleanText}`;
+    }
     const payload = {
       contents: [{ role: 'user', parts: [{ text: promptText }] }],
       generationConfig: {
         responseModalities: ['AUDIO'],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: {
-              voiceName
-            }
+            prebuiltVoiceConfig: { voiceName }
           }
         }
       }
     };
 
-    // Try keys with failover
-    const maxAttempts = Math.min(this.keys.length, 4);
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const apiKey = this.getActiveKey();
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+    // Try models in order, starting from the known-working one
+    for (let modelIdx = this.workingModelIndex; modelIdx < TTS_MODELS.length; modelIdx++) {
+      const model = TTS_MODELS[modelIdx];
+      const maxAttempts = Math.min(this.keys.length, 3);
 
-      try {
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if (signal?.aborted) return null;
 
-        if (response.ok) {
-          const json = await response.json();
-          const base64Data = json.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-          if (base64Data) {
-            this.audioCache.set(cacheKey, base64Data);
-            return base64Data;
+        const apiKey = this.getActiveKey();
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+        try {
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal
+          });
+
+          if (response.ok) {
+            const json = await response.json();
+            const base64Data = json.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+            if (base64Data) {
+              this.audioCache.set(cacheKey, base64Data);
+              this.workingModelIndex = modelIdx; // Remember working model
+              return base64Data;
+            }
           }
-        }
 
-        // Rotate key on 429 quota limit or 400 errors
-        this.rotateKey();
-      } catch (err) {
-        console.warn(`Attempt ${attempt + 1} failed for Gemini TTS:`, err);
-        this.rotateKey();
+          // 404 = model not available → skip to next model
+          if (response.status === 404) break;
+
+          // 429 or other error → rotate key
+          this.rotateKey();
+        } catch (err: any) {
+          if (err?.name === 'AbortError') return null;
+          console.warn(`Attempt ${attempt + 1} on ${model} failed:`, err);
+          this.rotateKey();
+        }
       }
     }
 
@@ -152,19 +199,21 @@ class GeminiAudioTtsService {
 
   /**
    * Plays PCM 24kHz audio from Gemini base64 data.
+   * Returns a promise that resolves when playback finishes.
    */
   public playPcmAudio(base64Data: string, rate: number = 1.0): Promise<void> {
     return new Promise((resolve) => {
       try {
-        this.stopAudio();
-        const ctx = this.ensureAudioContext();
+        // Stop any prior audio BEFORE starting new playback
+        if (this.currentSource) {
+          try { this.currentSource.stop(); this.currentSource.disconnect(); } catch { /* ok */ }
+          this.currentSource = null;
+        }
 
+        const ctx = this.ensureAudioContext();
         const binary = atob(base64Data);
         const sampleCount = Math.floor(binary.length / 2);
-        if (sampleCount === 0) {
-          resolve();
-          return;
-        }
+        if (sampleCount === 0) { resolve(); return; }
 
         const float32 = new Float32Array(sampleCount);
         for (let i = 0; i < sampleCount; i++) {
@@ -180,7 +229,7 @@ class GeminiAudioTtsService {
 
         const source = ctx.createBufferSource();
         source.buffer = buffer;
-        if (rate && rate > 0) {
+        if (rate > 0 && rate !== 1.0) {
           source.playbackRate.value = rate;
         }
         source.connect(ctx.destination);
@@ -198,7 +247,7 @@ class GeminiAudioTtsService {
 
         source.start();
       } catch (err) {
-        console.warn('Playback error in playPcmAudio:', err);
+        console.warn('Playback error:', err);
         this.isCurrentlyPlaying = false;
         if (this.onPlaybackStateChange) this.onPlaybackStateChange(false);
         resolve();
@@ -207,20 +256,21 @@ class GeminiAudioTtsService {
   }
 
   /**
-   * Preloads audio in background so when student reaches word, playback is instant
+   * Preloads audio in background so playback is instant.
+   * Non-blocking, never overlaps with current playback.
    */
   public async preloadAudio(text: string, voiceName: GeminiVoiceName = 'Puck'): Promise<void> {
+    // Only preload if nothing is currently speaking (avoid API contention)
+    if (this.speakLock || this.isCurrentlyPlaying) return;
     try {
       await this.generateAudio(text, voiceName);
-    } catch {
-      // ignore preload failures
-    }
+    } catch { /* silent preload failure */ }
   }
 
   /**
-   * High-level speaking method:
-   * First attempts Gemini natural API voice.
-   * If offline or API fails, falls back gracefully to browser synthesis.
+   * High-level speaking method — MUTEX-PROTECTED.
+   * Stops any prior audio, generates via Gemini API, plays PCM.
+   * Falls back gracefully to browser SpeechSynthesis if API fails.
    */
   public async speakText(
     text: string,
@@ -228,20 +278,32 @@ class GeminiAudioTtsService {
     fallbackLang: 'de-DE' | 'ar-SA' = 'de-DE',
     rate: number = 1.0
   ): Promise<void> {
+    // STEP 0: Stop any prior audio immediately
     this.stopAudio();
 
-    // 1. Try Gemini Ultra-realistic API voice
+    // STEP 1: Acquire the speak lock (prevents concurrent calls)
+    this.speakLock = true;
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+
     try {
-      const base64Data = await this.generateAudio(text, voiceName);
+      // STEP 2: Try Gemini Studio API voice
+      const base64Data = await this.generateAudio(text, voiceName, signal);
+      if (signal.aborted) return;
+
       if (base64Data) {
         await this.playPcmAudio(base64Data, rate);
         return;
       }
-    } catch (e) {
-      console.warn('Gemini API voice generation failed, using fallback:', e);
+    } catch (e: any) {
+      if (e?.name === 'AbortError') return;
+      console.warn('Gemini TTS failed, trying fallback:', e);
+    } finally {
+      this.speakLock = false;
+      this.abortController = null;
     }
 
-    // 2. Fallback to browser SpeechSynthesis
+    // STEP 3: Fallback to browser SpeechSynthesis
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       return new Promise((resolve) => {
         try {

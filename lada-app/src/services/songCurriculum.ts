@@ -13,11 +13,11 @@ export const FOUNDATIONAL_SONGS: SongDefinition[] = [
     instrument: 'piano',
     lyrics: [
       { id: '1_1', german: 'A, B, C', phoneticGuide: 'Ah, Beh, Tseh', darijaCorrect: 'L-hourouf l-oula', darijaDistractor: 'L-arqam l-oula', timingSec: 2 },
-      { id: '1_2', german: 'Ä [ae]', phoneticGuide: 'Eh (fhal f hedra)', darijaCorrect: 'A m3a noqat (Ä)', darijaDistractor: 'U m3a noqat (Ü)', timingSec: 5 },
-      { id: '1_3', german: 'Ö [oe]', phoneticGuide: 'Eu (fhal l-fransawiya)', darijaCorrect: 'O m3a noqat (Ö)', darijaDistractor: 'A m3a noqat (Ä)', timingSec: 8 },
-      { id: '1_4', german: 'Ü [ue]', phoneticGuide: 'U (fhal l-fransawiya tu)', darijaCorrect: 'U m3a noqat (Ü)', darijaDistractor: 'O m3a noqat (Ö)', timingSec: 11 },
+      { id: '1_2', german: 'Ä', phoneticGuide: 'Eh [ae] (fhal f hedra)', darijaCorrect: 'A m3a noqat (Ä)', darijaDistractor: 'U m3a noqat (Ü)', timingSec: 5 },
+      { id: '1_3', german: 'Ö', phoneticGuide: 'Eu [oe] (fhal l-fransawiya)', darijaCorrect: 'O m3a noqat (Ö)', darijaDistractor: 'A m3a noqat (Ä)', timingSec: 8 },
+      { id: '1_4', german: 'Ü', phoneticGuide: 'U [ue] (fhal l-fransawiya tu)', darijaCorrect: 'U m3a noqat (Ü)', darijaDistractor: 'O m3a noqat (Ö)', timingSec: 11 },
       { id: '1_5', german: 'das Alphabet', phoneticGuide: 'das Al-fa-bet', darijaCorrect: 'L-hourouf kamlin', darijaDistractor: 'L-kelmat kamlin', timingSec: 14 },
-      { id: '1_6', german: 'das Eszett [ß]', phoneticGuide: 'das Ess-tset', darijaCorrect: 'Double S (ß)', darijaDistractor: 'Double T (tt)', timingSec: 17 },
+      { id: '1_6', german: 'ß', phoneticGuide: 'das Ess-tsett [ß]', darijaCorrect: 'Double S (ß)', darijaDistractor: 'Double T (tt)', timingSec: 17 },
       { id: '1_7', german: 'Ich lerne Deutsch', phoneticGuide: 'Ikh ler-ne Doytsh', darijaCorrect: 'Ana kant3llem l-Almaniya', darijaDistractor: 'Ana kanhder l-Almaniya', timingSec: 20 },
       { id: '1_8', german: 'Sehr gut!', phoneticGuide: 'Zehr goot!', darijaCorrect: 'Mezyan bzaf!', darijaDistractor: 'Khayb bzaf!', timingSec: 23 }
     ]
