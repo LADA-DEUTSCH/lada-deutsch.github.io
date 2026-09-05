@@ -1,0 +1,11 @@
+{
+  "hasEffectComposer": true,
+  "hasEnableNormalPassFalse": true,
+  "hasMultisampling": true,
+  "hasBloom": true,
+  "hasMipmapBlur": true,
+  "hasLuminanceThreshold": true,
+  "hasMeshPhysical": true,
+  "deprecatedFound": false,
+  "passed": true
+}

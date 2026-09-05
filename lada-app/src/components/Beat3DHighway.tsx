@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Volume2,
   VolumeX,
@@ -9,626 +9,130 @@ import {
   Mic,
   Flame,
   Maximize,
-  Minimize
+  Minimize,
+  Star,
+  Zap
 } from 'lucide-react';
-import type { SongDefinition, GameDifficultyLevel, SongLyricItem } from '../types';
-import { MusicSynthEngine } from '../services/musicSynthEngine';
+import type { SongDefinition, GameDifficultyLevel } from '../types';
+import { rhythmAudioEngine } from '../services/rhythmAudioEngine';
 import { VoiceRater } from '../services/voiceRater';
 import { recordLevelResult, getSongProgress } from '../services/gameProgressStorage';
 import { toggleFullscreen, isFullscreen } from '../services/fullscreenUtils';
+import { useRhythmGameStore } from '../store/useRhythmGameStore';
+import { HighwayScene } from './highway';
 
-interface Beat3DHighwayProps {
+export interface Beat3DHighwayProps {
   song: SongDefinition;
   level: GameDifficultyLevel;
   onExit: () => void;
   onLevelComplete?: () => void;
 }
 
-interface ActiveTile {
-  lyric: SongLyricItem;
-  spawnTime: number;
-  targetTime: number;
-  correctLane: 0 | 1;
-  resolved: boolean;
-  userSelectedLane: 0 | 1 | null;
-  result?: 'perfect' | 'miss';
+interface EndGameResult {
+  score: number;
+  accuracy: number;
+  maxCombo: number;
+  perfectStreak: number;
+  unlockedNext: boolean;
+  becameMastered: boolean;
 }
 
-interface Particle {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  color: string;
-  size: number;
-  alpha: number;
-  life: number;
-}
-
+/**
+ * Modern AAA WebGL 3D Rhythm Highway Component.
+ * Powered by React Three Fiber, Three.js, Zustand, and precision Web Audio API.
+ */
 export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
   song,
   level,
   onExit,
   onLevelComplete
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isMuted, setIsMuted] = useState(false);
-  const [score, setScore] = useState(0);
-  const [combo, setCombo] = useState(0);
-  const [maxCombo, setMaxCombo] = useState(0);
-  const [currentAccuracy, setCurrentAccuracy] = useState(100);
-  const [songProgressPct, setSongProgressPct] = useState(0);
-  const [selectedLane, setSelectedLane] = useState<0 | 1>(0);
+  // Local UI states
   const [gameState, setGameState] = useState<'playing' | 'ended'>('playing');
-  const [isFullscreenMode, setIsFullscreenMode] = useState(isFullscreen());
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isFullscreenMode, setIsFullscreenMode] = useState<boolean>(isFullscreen());
 
-  // Mic and voice transcription for Level 3
-  const [liveTranscript, setLiveTranscript] = useState('');
-  const [currentPromptWord, setCurrentPromptWord] = useState('');
+  // Voice Arena state for Level 3
+  const [liveTranscript, setLiveTranscript] = useState<string>('');
+  const [currentPromptWord, setCurrentPromptWord] = useState<string>('');
 
-  // End game summary
-  const [endResult, setEndResult] = useState<{
-    score: number;
-    accuracy: number;
-    perfectStreak: number;
-    unlockedNext: boolean;
-    becameMastered: boolean;
-  } | null>(null);
-
-  // Engines
-  const audioEngineRef = useRef<MusicSynthEngine | null>(null);
-  const voiceRaterRef = useRef<VoiceRater | null>(null);
-
-  // Gameplay tracking
-  const activeTilesRef = useRef<ActiveTile[]>([]);
-  const particlesRef = useRef<Particle[]>([]);
-  const startTimeRef = useRef<number>(0);
-  const animationFrameRef = useRef<number | null>(null);
-  const hitsCountRef = useRef({ total: 0, correct: 0 });
-  const roadScrollRef = useRef<number>(0);
-  const screenShakeRef = useRef<number>(0);
-  const cameraTiltRef = useRef<number>(0);
-
-  const selectedLaneRef = useRef<0 | 1>(0);
-
-  const chooseLane = useCallback((lane: 0 | 1) => {
-    setSelectedLane(lane);
-    selectedLaneRef.current = lane;
+  // Derived browser Web Speech API capability for Level 3
+  const isSpeechAvailable = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const win = window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown };
+    return Boolean(win.SpeechRecognition || win.webkitSpeechRecognition);
   }, []);
 
+  // End Game Modal Result
+  const [endResult, setEndResult] = useState<EndGameResult | null>(null);
+
+  // Engine refs
+  const voiceRaterRef = useRef<VoiceRater | null>(null);
+  const hasEndedRef = useRef<boolean>(false);
+
+  // Zustand Rhythm Game Store Selectors
+  const score = useRhythmGameStore((s) => s.score);
+  const combo = useRhythmGameStore((s) => s.combo);
+  const maxCombo = useRhythmGameStore((s) => s.maxCombo);
+  const streak = useRhythmGameStore((s) => s.streak);
+  const multiplier = useRhythmGameStore((s) => s.multiplier);
+  const accuracy = useRhythmGameStore((s) => s.accuracy);
+  const selectedLane = useRhythmGameStore((s) => s.selectedLane);
+  const activeTiles = useRhythmGameStore((s) => s.activeTiles);
+  const currentAudioTime = useRhythmGameStore((s) => s.currentAudioTime);
+  const hitFeedback = useRhythmGameStore((s) => s.hitFeedback);
+
+  // Calculate song duration & real-time progress
+  const totalDuration = useMemo(() => {
+    if (!song.lyrics || song.lyrics.length === 0) return 30;
+    return song.lyrics[song.lyrics.length - 1].timingSec + 3.5;
+  }, [song]);
+
+  const songProgressPct = useMemo(() => {
+    if (totalDuration <= 0) return 0;
+    return Math.min(100, Math.max(0, Math.round((currentAudioTime / totalDuration) * 100)));
+  }, [currentAudioTime, totalDuration]);
+
+  // Current approaching tile for Level 2 translation prompt
+  const upcomingTile = useMemo(() => {
+    if (level !== 2) return null;
+    return activeTiles.find((t) => !t.resolved && t.targetTime >= currentAudioTime - 0.2);
+  }, [level, activeTiles, currentAudioTime]);
+
+  // Fullscreen toggle handler
   const handleFullscreen = () => {
     toggleFullscreen();
     setIsFullscreenMode(!isFullscreenMode);
   };
 
-  // Keyboard controls
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
-        chooseLane(0);
-      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
-        chooseLane(1);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [chooseLane]);
-
-  // Touch screen lane steering (Two-Thumb Tap Anywhere)
-  const handleTouchScreen = (e: React.TouchEvent) => {
-    if (gameState !== 'playing' || level !== 2) return;
-    const touch = e.touches[0];
-    if (!touch) return;
-    const w = window.innerWidth;
-    if (touch.clientX < w / 2) {
-      chooseLane(0);
-    } else {
-      chooseLane(1);
-    }
+  // Mute toggle handler
+  const toggleMute = () => {
+    const next = !isMuted;
+    setIsMuted(next);
+    rhythmAudioEngine.setMuted(next);
   };
 
-  // Initialize Engines & Audio
-  useEffect(() => {
-    audioEngineRef.current = new MusicSynthEngine();
-    voiceRaterRef.current = new VoiceRater();
+  // Handle Game Completion
+  const handleGameEnd = useCallback(() => {
+    if (hasEndedRef.current) return;
+    hasEndedRef.current = true;
 
-    if (level === 3) {
-      voiceRaterRef.current.startListening((text) => {
-        setLiveTranscript(text);
-      });
-    }
-
-    audioEngineRef.current.startSongRhythm(song.bpm, song.instrument);
-
-    const TRAVEL_TIME_SEC = level === 1 ? 4.5 : 3.5;
-    const tiles: ActiveTile[] = song.lyrics.map((l) => {
-      const correctLane: 0 | 1 = Math.random() > 0.5 ? 1 : 0;
-      return {
-        lyric: l,
-        spawnTime: Math.max(0, l.timingSec - TRAVEL_TIME_SEC),
-        targetTime: l.timingSec,
-        correctLane,
-        resolved: false,
-        userSelectedLane: null
-      };
-    });
-
-    activeTilesRef.current = tiles;
-    startTimeRef.current = performance.now() / 1000;
-    roadScrollRef.current = 0;
-    hitsCountRef.current = { total: 0, correct: 0 };
-    screenShakeRef.current = 0;
-    cameraTiltRef.current = 0;
-
-    // Dynamic Canvas Resize on fullscreen, orientation change & bar toggles
-    const handleResize = () => {
-      const canvas = canvasRef.current;
-      if (canvas) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      }
-    };
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('orientationchange', handleResize);
-
-    return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('orientationchange', handleResize);
-      audioEngineRef.current?.dispose();
-      voiceRaterRef.current?.stopListening();
-    };
-  }, [song, level]);
-
-  const spawnParticles = (x: number, y: number, color: string, count: number = 26) => {
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 7 + 2.5;
-      particlesRef.current.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        color,
-        size: Math.random() * 4 + 2,
-        alpha: 1.0,
-        life: 1.0
-      });
-    }
-  };
-
-  // Main 3D Render Loop (Modern AAA Widescreen Runway)
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let isRunning = true;
-
-    const render = () => {
-      if (!isRunning) return;
-
-      const w = canvas.width;
-      const h = canvas.height;
-      const now = performance.now() / 1000;
-      const songElapsed = now - startTimeRef.current;
-
-      const totalDuration = song.lyrics[song.lyrics.length - 1].timingSec + 4;
-      const progress = Math.min(100, Math.round((songElapsed / totalDuration) * 100));
-      setSongProgressPct(progress);
-
-      if (songElapsed > totalDuration && activeTilesRef.current.every((t) => t.resolved)) {
-        if (gameState === 'playing') {
-          handleGameEnd();
-        }
-      }
-
-      // Smooth Camera Tilt
-      const targetTilt = selectedLaneRef.current === 0 ? -0.02 : 0.02;
-      cameraTiltRef.current += (targetTilt - cameraTiltRef.current) * 0.12;
-
-      // Screen Shake
-      let shakeX = 0;
-      let shakeY = 0;
-      if (screenShakeRef.current > 0.1) {
-        shakeX = (Math.random() * 2 - 1) * screenShakeRef.current;
-        shakeY = (Math.random() * 2 - 1) * screenShakeRef.current;
-        screenShakeRef.current *= 0.85;
-      }
-
-      ctx.save();
-      ctx.translate(shakeX, shakeY);
-
-      // 1. Clear Screen — Deep Matte Carbon
-      ctx.fillStyle = '#060813';
-      ctx.fillRect(0, 0, w, h);
-
-      // 2. Horizon — Atmospheric Deep Blue Minimalist Glow (No cheesy suns!)
-      const horizonY = h * 0.35;
-      const cx = w / 2;
-
-      const horizonGlow = ctx.createLinearGradient(0, horizonY - 60, 0, horizonY + 20);
-      horizonGlow.addColorStop(0, 'rgba(6, 8, 19, 0)');
-      horizonGlow.addColorStop(0.7, 'rgba(30, 58, 138, 0.18)');
-      horizonGlow.addColorStop(1, 'rgba(6, 8, 19, 0)');
-      ctx.fillStyle = horizonGlow;
-      ctx.fillRect(0, horizonY - 60, w, 80);
-
-      // Subtle Distant Star Dust
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-      for (let i = 0; i < 16; i++) {
-        const sx = ((i * 137.5) % w);
-        const sy = (i * 29) % horizonY;
-        ctx.fillRect(sx, sy, 1.5, 1.5);
-      }
-
-      // Camera Tilt Matrix
-      ctx.save();
-      ctx.translate(cx, horizonY);
-      ctx.rotate(cameraTiltRef.current);
-      ctx.translate(-cx, -horizonY);
-
-      // 3. Precision Runway Geometry
-      const roadTopWidth = w * 0.14;
-      const roadBottomWidth = Math.min(w * 0.88, 1000);
-      const hitY = h * 0.83;
-
-      const pTopLeft = { x: cx - roadTopWidth / 2, y: horizonY };
-      const pTopRight = { x: cx + roadTopWidth / 2, y: horizonY };
-      const pBottomLeft = { x: cx - roadBottomWidth / 2, y: h };
-      const pBottomRight = { x: cx + roadBottomWidth / 2, y: h };
-
-      // Dark Metallic Asphalt Road Surface
-      ctx.beginPath();
-      ctx.moveTo(pTopLeft.x, pTopLeft.y);
-      ctx.lineTo(pTopRight.x, pTopRight.y);
-      ctx.lineTo(pBottomRight.x, pBottomRight.y);
-      ctx.lineTo(pBottomLeft.x, pBottomLeft.y);
-      ctx.closePath();
-
-      const roadGrad = ctx.createLinearGradient(0, horizonY, 0, h);
-      roadGrad.addColorStop(0, '#090d1e');
-      roadGrad.addColorStop(1, '#0e152e');
-      ctx.fillStyle = roadGrad;
-      ctx.fill();
-
-      // Precision Laser Guide Rails (Left: Electric Blue, Right: Warm Amber)
-      ctx.lineWidth = 3.5;
-      ctx.shadowBlur = 16;
-
-      // Left Rail (Electric Blue #38bdf8)
-      ctx.shadowColor = '#38bdf8';
-      ctx.strokeStyle = '#38bdf8';
-      ctx.beginPath();
-      ctx.moveTo(pTopLeft.x, pTopLeft.y);
-      ctx.lineTo(pBottomLeft.x, pBottomLeft.y);
-      ctx.stroke();
-
-      // Right Rail (Warm Amber #f59e0b)
-      ctx.shadowColor = '#f59e0b';
-      ctx.strokeStyle = '#f59e0b';
-      ctx.beginPath();
-      ctx.moveTo(pTopRight.x, pTopRight.y);
-      ctx.lineTo(pBottomRight.x, pBottomRight.y);
-      ctx.stroke();
-
-      // Center Divider (Subtle Minimalist Dashed)
-      ctx.shadowBlur = 6;
-      ctx.shadowColor = '#64748b';
-      ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
-      ctx.setLineDash([14, 14]);
-      ctx.beginPath();
-      ctx.moveTo(cx, horizonY);
-      ctx.lineTo(cx, h);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.shadowBlur = 0;
-
-      // Road Speed Pulse Lines
-      roadScrollRef.current = (roadScrollRef.current + (song.bpm / 60) * 0.045) % 1;
-      const numSpeedLines = 8;
-      ctx.strokeStyle = 'rgba(56, 189, 248, 0.12)';
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < numSpeedLines; i++) {
-        const lineProg = (i / numSpeedLines + roadScrollRef.current) % 1;
-        const lineZ = Math.pow(lineProg, 2.3);
-        const ly = horizonY + (h - horizonY) * lineZ;
-        const lw = roadTopWidth + (roadBottomWidth - roadTopWidth) * lineZ;
-        ctx.beginPath();
-        ctx.moveTo(cx - lw / 2, ly);
-        ctx.lineTo(cx + lw / 2, ly);
-        ctx.stroke();
-      }
-
-      // 4. Hit Zone / Target Line
-      const hitLineWidth =
-        roadTopWidth + (roadBottomWidth - roadTopWidth) * ((hitY - horizonY) / (h - horizonY));
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = '#38bdf8';
-      ctx.strokeStyle = '#38bdf8';
-      ctx.lineWidth = 3.5;
-      ctx.beginPath();
-      ctx.moveTo(cx - hitLineWidth / 2, hitY);
-      ctx.lineTo(cx + hitLineWidth / 2, hitY);
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      // Player Lane Indicator Pad
-      const playerLane = selectedLaneRef.current;
-      const halfLaneWidth = hitLineWidth / 4;
-      const playerIndicatorX = playerLane === 0 ? cx - halfLaneWidth : cx + halfLaneWidth;
-
-      if (level === 2) {
-        ctx.fillStyle =
-          playerLane === 0 ? 'rgba(56, 189, 248, 0.55)' : 'rgba(245, 158, 11, 0.55)';
-        ctx.shadowBlur = 25;
-        ctx.shadowColor = playerLane === 0 ? '#38bdf8' : '#f59e0b';
-        ctx.beginPath();
-        ctx.ellipse(playerIndicatorX, hitY, halfLaneWidth * 0.75, 14, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
-
-      // 5. Active 3D Lyric Tiles
-      const TRAVEL_TIME_SEC = level === 1 ? 4.5 : 3.5;
-
-      activeTilesRef.current.forEach((tile) => {
-        const timeUntilHit = tile.targetTime - songElapsed;
-
-        if (songElapsed < tile.spawnTime || timeUntilHit < -0.6) {
-          if (timeUntilHit < -0.6 && !tile.resolved) {
-            tile.resolved = true;
-            handleTileHit(tile, false);
-          }
-          return;
-        }
-
-        const zProg = Math.max(0, Math.min(1.2, 1 - timeUntilHit / TRAVEL_TIME_SEC));
-        const nonLinearZ = Math.pow(zProg, 1.8);
-        const tileY = horizonY + (hitY - horizonY) * nonLinearZ;
-        const currentRoadW =
-          roadTopWidth + (roadBottomWidth - roadTopWidth) * ((tileY - horizonY) / (h - horizonY));
-        const scale = 0.4 + 0.6 * nonLinearZ;
-
-        if (level === 2) {
-          // --- LEVEL 2: DUAL-CHOICE RUNNER ---
-          const laneOffset = currentRoadW / 4;
-          const leftX = cx - laneOffset;
-          const rightX = cx + laneOffset;
-
-          const leftText =
-            tile.correctLane === 0 ? tile.lyric.darijaCorrect : tile.lyric.darijaDistractor;
-          const rightText =
-            tile.correctLane === 1 ? tile.lyric.darijaCorrect : tile.lyric.darijaDistractor;
-
-          // German Word Floating Banner Above Gates
-          ctx.save();
-          ctx.translate(cx, tileY - 44 * scale);
-          ctx.scale(scale, scale);
-          ctx.fillStyle = 'rgba(10, 15, 30, 0.95)';
-          ctx.strokeStyle = '#facc15';
-          ctx.lineWidth = 2;
-          ctx.shadowBlur = 14;
-          ctx.shadowColor = '#facc15';
-          ctx.beginPath();
-          ctx.roundRect(-150, -20, 300, 40, 10);
-          ctx.fill();
-          ctx.stroke();
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 18px system-ui, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(tile.lyric.german, 0, 0);
-          ctx.restore();
-
-          // Gate 0 (Left Lane)
-          renderChoiceGate(ctx, leftX, tileY, scale, leftText, 0, selectedLaneRef.current === 0);
-
-          // Gate 1 (Right Lane)
-          renderChoiceGate(ctx, rightX, tileY, scale, rightText, 1, selectedLaneRef.current === 1);
-
-          // Strike Line Judgment
-          if (timeUntilHit <= 0.05 && !tile.resolved) {
-            tile.resolved = true;
-            const chosen = selectedLaneRef.current;
-            const isCorrect = chosen === tile.correctLane;
-            const chosenX = chosen === 0 ? leftX : rightX;
-            tile.userSelectedLane = chosen;
-            tile.result = isCorrect ? 'perfect' : 'miss';
-
-            if (isCorrect) {
-              spawnParticles(chosenX, hitY, '#38bdf8', 28);
-              audioEngineRef.current?.playHitFx(true);
-              audioEngineRef.current?.speakGermanLyric(tile.lyric.german, false);
-              screenShakeRef.current = 5;
-            } else {
-              spawnParticles(chosenX, hitY, '#ef4444', 16);
-              audioEngineRef.current?.playMissFx();
-              screenShakeRef.current = 7;
-            }
-            handleTileHit(tile, isCorrect);
-          }
-        } else if (level === 3) {
-          // --- LEVEL 3: VOICE ARENA ---
-          ctx.save();
-          ctx.translate(cx, tileY);
-          ctx.scale(scale, scale);
-
-          const cardW = 280;
-          const cardH = 70;
-          ctx.fillStyle = 'rgba(10, 15, 30, 0.95)';
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 2.5;
-          ctx.shadowBlur = 18;
-          ctx.shadowColor = '#38bdf8';
-          ctx.beginPath();
-          ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 12);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.shadowBlur = 0;
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 22px system-ui, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(tile.lyric.german, 0, -8);
-
-          ctx.fillStyle = '#93c5fd';
-          ctx.font = '700 13px system-ui, sans-serif';
-          ctx.fillText(`[ ${tile.lyric.phoneticGuide} ]`, 0, 16);
-          ctx.restore();
-
-          if (timeUntilHit < 0.9 && timeUntilHit > -0.2) {
-            setCurrentPromptWord(tile.lyric.german);
-          }
-
-          if (timeUntilHit <= 0.05 && !tile.resolved) {
-            tile.resolved = true;
-            const evaluation = voiceRaterRef.current?.evaluateTargetWord(tile.lyric.german);
-            const isMatch = evaluation ? evaluation.isMatch : false;
-
-            tile.result = isMatch ? 'perfect' : 'miss';
-            if (isMatch) {
-              spawnParticles(cx, hitY, '#38bdf8', 30);
-              audioEngineRef.current?.playHitFx(true);
-              screenShakeRef.current = 5;
-            } else {
-              spawnParticles(cx, hitY, '#ef4444', 16);
-              audioEngineRef.current?.playMissFx();
-              screenShakeRef.current = 7;
-            }
-            handleTileHit(tile, isMatch);
-            voiceRaterRef.current?.resetTranscript();
-          }
-        }
-      });
-
-      // 6. Particle Emitter
-      for (let i = particlesRef.current.length - 1; i >= 0; i--) {
-        const p = particlesRef.current[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.alpha -= 0.035;
-        p.life -= 0.035;
-
-        if (p.alpha <= 0) {
-          particlesRef.current.splice(i, 1);
-          continue;
-        }
-
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.alpha;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1.0;
-      }
-
-      ctx.restore(); // Restore Tilt
-      ctx.restore(); // Restore Shake
-
-      animationFrameRef.current = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      isRunning = false;
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
-    };
-  }, [song, level, gameState]);
-
-  // Choice Gate Render — Sleek Frosted Glass
-  const renderChoiceGate = (
-    ctx: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    scale: number,
-    text: string,
-    laneIndex: number,
-    isSelected: boolean
-  ) => {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(scale, scale);
-
-    const gateW = 150;
-    const gateH = 54;
-
-    ctx.fillStyle = isSelected
-      ? laneIndex === 0
-        ? 'rgba(30, 58, 138, 0.95)'
-        : 'rgba(120, 53, 15, 0.95)'
-      : 'rgba(15, 23, 42, 0.9)';
-
-    ctx.strokeStyle = laneIndex === 0 ? '#38bdf8' : '#f59e0b';
-    ctx.lineWidth = isSelected ? 3 : 1.5;
-
-    if (isSelected) {
-      ctx.shadowBlur = 20;
-      ctx.shadowColor = laneIndex === 0 ? '#38bdf8' : '#f59e0b';
-    }
-
-    ctx.beginPath();
-    ctx.roundRect(-gateW / 2, -gateH / 2, gateW, gateH, 10);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = isSelected ? '#ffffff' : '#cbd5e1';
-    ctx.font = 'bold 14px system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(text, 0, 0);
-
-    ctx.restore();
-  };
-
-  const handleTileHit = (_tile: ActiveTile, isCorrect: boolean) => {
-    hitsCountRef.current.total += 1;
-    if (isCorrect) {
-      hitsCountRef.current.correct += 1;
-      setScore((prev) => prev + 100 + combo * 10);
-      setCombo((prev) => {
-        const next = prev + 1;
-        if (next > maxCombo) setMaxCombo(next);
-        if (next % 5 === 0) {
-          audioEngineRef.current?.playStreakFx(next);
-        }
-        return next;
-      });
-    } else {
-      setCombo(0);
-    }
-
-    const acc = Math.round((hitsCountRef.current.correct / hitsCountRef.current.total) * 100);
-    setCurrentAccuracy(acc);
-  };
-
-  const handleGameEnd = () => {
     setGameState('ended');
-    audioEngineRef.current?.stopSongRhythm();
+    rhythmAudioEngine.stopSongRhythm();
+    voiceRaterRef.current?.stopListening();
 
-    const finalAcc =
-      hitsCountRef.current.total > 0
-        ? Math.round((hitsCountRef.current.correct / hitsCountRef.current.total) * 100)
-        : 100;
-
-    const result = recordLevelResult(song.id, level, score, finalAcc);
-
+    const finalScore = useRhythmGameStore.getState().score;
+    const finalAcc = useRhythmGameStore.getState().accuracy;
+    const finalMaxCombo = useRhythmGameStore.getState().maxCombo;
+    const result = recordLevelResult(song.id, level, finalScore, finalAcc);
     const updatedProg = getSongProgress(song.id);
-    const streak = level === 2 ? updatedProg.level2PerfectCount : updatedProg.level3PerfectCount;
+    const streakCount = level === 2 ? updatedProg.level2PerfectCount : updatedProg.level3PerfectCount;
 
     setEndResult({
-      score,
+      score: finalScore,
       accuracy: finalAcc,
-      perfectStreak: streak,
+      maxCombo: finalMaxCombo,
+      perfectStreak: streakCount,
       unlockedNext: result.unlockedNext,
       becameMastered: result.becameMastered
     });
@@ -636,125 +140,232 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
     if (onLevelComplete) {
       onLevelComplete();
     }
+  }, [song.id, level, onLevelComplete]);
+
+  // Check for song completion
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const allResolved = activeTiles.length > 0 && activeTiles.every((t) => t.resolved);
+    const timeCompleted = currentAudioTime >= totalDuration;
+
+    if (allResolved || timeCompleted) {
+      const timer = setTimeout(() => {
+        handleGameEnd();
+      }, 900);
+      return () => clearTimeout(timer);
+    }
+  }, [currentAudioTime, totalDuration, activeTiles, gameState, handleGameEnd]);
+
+  // Game Lifecycle & Audio Engine initialization
+  useEffect(() => {
+    hasEndedRef.current = false;
+
+    // Spawn tiles into Zustand store
+    useRhythmGameStore.getState().spawnTilesFromSong(song, level);
+
+    // Start precision Web Audio rhythm synthesizer
+    rhythmAudioEngine.startSongRhythm(song.bpm, song.instrument);
+
+    // Start Level 3 Voice Arena speech recognition if active
+    if (level === 3) {
+      const vr = new VoiceRater();
+      voiceRaterRef.current = vr;
+      vr.startListening((text) => {
+        setLiveTranscript(text);
+      });
+    }
+
+    return () => {
+      rhythmAudioEngine.stopSongRhythm();
+      voiceRaterRef.current?.stopListening();
+    };
+  }, [song, level]);
+
+  // Level 3 Voice Arena real-time speech matching subscriber
+  useEffect(() => {
+    if (level !== 3 || gameState !== 'playing') return;
+
+    const unsubscribe = useRhythmGameStore.subscribe((state) => {
+      const time = state.currentAudioTime;
+
+      for (const tile of state.activeTiles) {
+        if (tile.resolved) continue;
+        const diff = tile.targetTime - time;
+
+        // Show prompt word when approaching (within 1.2 seconds)
+        if (diff > -0.2 && diff < 1.2) {
+          setCurrentPromptWord(tile.germanText);
+        }
+
+        // Evaluation window at strike zone [-0.08s, +0.08s]
+        if (diff <= 0.08 && diff >= -0.08) {
+          const evaluation = voiceRaterRef.current?.evaluateTargetWord(tile.germanText);
+          if (evaluation && evaluation.isMatch) {
+            state.registerHit(tile.id, 'perfect');
+            rhythmAudioEngine.playHitFx('perfect');
+            rhythmAudioEngine.speakGermanLyric(tile.germanText, false);
+            voiceRaterRef.current?.resetTranscript();
+            setLiveTranscript('');
+            break;
+          }
+        }
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [level, gameState]);
+
+  // Hit callback from 3D HighwayScene
+  const handleSceneHit = useCallback((tileId: string, accuracyResult: 'perfect' | 'good' | 'miss') => {
+    if (accuracyResult === 'perfect' || accuracyResult === 'good') {
+      const target = useRhythmGameStore.getState().activeTiles.find((t) => t.id === tileId);
+      if (target) {
+        rhythmAudioEngine.speakGermanLyric(target.germanText, false);
+      }
+    }
+  }, []);
+
+  // Lane switch callback from 3D HighwayScene
+  const handleSceneLaneChange = useCallback((lane: 0 | 1) => {
+    useRhythmGameStore.getState().setLane(lane);
+  }, []);
+
+  // On-screen mobile touch lane steering
+  const handleMobileLane = (lane: 0 | 1) => {
+    rhythmAudioEngine.playLaneSwitchFx();
+    useRhythmGameStore.getState().setLane(lane);
   };
 
-  const toggleMute = () => {
-    const next = !isMuted;
-    setIsMuted(next);
-    audioEngineRef.current?.setMuted(next);
+  // On-screen mobile touch strike
+  const handleMobileStrike = () => {
+    rhythmAudioEngine.ensureContext();
+    const currentLane = useRhythmGameStore.getState().selectedLane;
+    const result = useRhythmGameStore.getState().evaluateTileHit(currentLane);
+    if (result) {
+      if (result.accuracy === 'perfect') {
+        rhythmAudioEngine.playHitFx('perfect');
+        rhythmAudioEngine.speakGermanLyric(result.tile.germanText, false);
+      } else if (result.accuracy === 'good') {
+        rhythmAudioEngine.playHitFx('good');
+        rhythmAudioEngine.speakGermanLyric(result.tile.germanText, false);
+      } else {
+        rhythmAudioEngine.playMissFx();
+      }
+    }
   };
+
+  // Replay / Restart current song
+  const handleRestart = useCallback(() => {
+    hasEndedRef.current = false;
+    setGameState('playing');
+    setEndResult(null);
+    setLiveTranscript('');
+    setCurrentPromptWord('');
+
+    useRhythmGameStore.getState().resetGame();
+    useRhythmGameStore.getState().spawnTilesFromSong(song, level);
+    rhythmAudioEngine.startSongRhythm(song.bpm, song.instrument);
+
+    if (level === 3) {
+      voiceRaterRef.current?.resetTranscript();
+      voiceRaterRef.current?.startListening((text) => {
+        setLiveTranscript(text);
+      });
+    }
+  }, [song, level]);
+
+  // Star rating calculation for end modal
+  const starCount = useMemo(() => {
+    if (!endResult) return 0;
+    if (endResult.accuracy >= 95) return 3;
+    if (endResult.accuracy >= 75) return 2;
+    return 1;
+  }, [endResult]);
 
   return (
-    <div
-      onTouchStart={handleTouchScreen}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: '#060813',
-        zIndex: 100,
-        display: 'flex',
-        flexDirection: 'column',
-        userSelect: 'none',
-        overflow: 'hidden'
-      }}
-    >
-      {/* Top Header HUD */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 20,
-          height: '52px',
-          padding: '0 20px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'linear-gradient(to bottom, rgba(6,8,19,0.95), rgba(6,8,19,0))'
-        }}
-      >
-        {/* Left: Exit & Song */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <div className="fixed inset-0 bg-[#02040a] z-50 flex flex-col select-none overflow-hidden font-sans text-white">
+      {/* 3D WebGL Highway Viewport Layer */}
+      <div className="absolute inset-0 w-full h-full">
+        <HighwayScene
+          song={song}
+          level={level}
+          selectedLane={selectedLane}
+          onHit={handleSceneHit}
+          onLaneChange={handleSceneLaneChange}
+          audioEngine={rhythmAudioEngine}
+          className="w-full h-full"
+        />
+      </div>
+
+      {/* Top Cyber Navigation Header */}
+      <div className="absolute top-0 left-0 right-0 z-20 h-14 px-4 sm:px-6 flex items-center justify-between bg-gradient-to-b from-[#02040a]/95 via-[#02040a]/60 to-transparent backdrop-blur-sm pointer-events-auto">
+        {/* Left: Exit button & Song Info */}
+        <div className="flex items-center gap-3">
           <button
             onClick={onExit}
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
+            title="Exit Game"
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-95"
           >
-            <X size={15} />
+            <X size={16} />
           </button>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '15px', fontWeight: 900, color: '#ffffff' }}>
+            <div className="flex items-center gap-2">
+              <span className="font-black text-sm sm:text-base text-white tracking-wide drop-shadow">
                 #{song.number} {song.title}
               </span>
               <span
-                style={{
-                  fontSize: '10px',
-                  fontWeight: 800,
-                  padding: '2px 8px',
-                  borderRadius: '6px',
-                  background:
-                    level === 2 ? 'rgba(56,189,248,0.18)' : 'rgba(245,158,11,0.18)',
-                  color: level === 2 ? '#38bdf8' : '#f59e0b'
-                }}
+                className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                  level === 2
+                    ? 'bg-sky-500/20 text-sky-400 border-sky-400/40'
+                    : level === 3
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-400/40'
+                    : 'bg-emerald-500/20 text-emerald-400 border-emerald-400/40'
+                }`}
               >
-                {level === 2 ? 'NIVEAU 2: 3D CHOICE' : 'NIVEAU 3: VOICE ARENA'}
+                {level === 1
+                  ? 'NIVEAU 1: RYTHME PUR'
+                  : level === 2
+                  ? 'NIVEAU 2: 3D DARIJA GATES'
+                  : 'NIVEAU 3: VOICE ARENA'}
               </span>
+              <span className="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800/80 text-slate-300 border border-slate-700">
+                {song.bpm} BPM
+              </span>
+            </div>
+            <div className="text-[11px] text-slate-400 hidden sm:block">
+              {song.subtitle || song.theme}
             </div>
           </div>
         </div>
 
         {/* Right: Score, Accuracy, Fullscreen, Mute */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '17px', fontWeight: 900, color: '#38bdf8' }}>{score}</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8' }}>Acc: {currentAccuracy}%</div>
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="text-right">
+            <div className="text-base sm:text-lg font-black text-sky-400 tracking-wider drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]">
+              {score.toLocaleString()}
+            </div>
+            <div className="text-[10px] text-slate-400 font-semibold">Acc: {accuracy}%</div>
           </div>
 
           <button
             onClick={handleFullscreen}
-            title="Fullscreen Toggle"
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
+            title="Toggle Fullscreen"
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-95"
           >
             {isFullscreenMode ? <Minimize size={15} /> : <Maximize size={15} />}
           </button>
 
           <button
             onClick={toggleMute}
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: isMuted ? '#ef4444' : '#ffffff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer'
-            }}
+            title="Toggle Mute"
+            className={`w-9 h-9 rounded-full border text-white flex items-center justify-center transition-all cursor-pointer shadow-lg active:scale-95 ${
+              isMuted
+                ? 'bg-red-500/20 border-red-500/50 text-red-400'
+                : 'bg-white/10 hover:bg-white/20 border-white/15'
+            }`}
           >
             {isMuted ? <VolumeX size={15} /> : <Volume2 size={15} />}
           </button>
@@ -762,323 +373,271 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       </div>
 
       {/* Song Progress Line */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '52px',
-          left: 0,
-          right: 0,
-          height: '3px',
-          background: 'rgba(255,255,255,0.08)',
-          zIndex: 20
-        }}
-      >
+      <div className="absolute top-14 left-0 right-0 h-1 bg-white/10 z-20 overflow-hidden">
         <div
-          style={{
-            width: `${songProgressPct}%`,
-            height: '100%',
-            background: 'linear-gradient(to right, #38bdf8, #f59e0b)',
-            transition: 'width 0.2s linear'
-          }}
+          className="h-full bg-gradient-to-r from-sky-400 via-teal-400 to-amber-400 transition-all duration-200 ease-linear shadow-[0_0_10px_rgba(56,189,248,0.8)]"
+          style={{ width: `${songProgressPct}%` }}
         />
       </div>
 
-      {/* Combo Badge */}
-      {combo > 1 && (
+      {/* Dynamic HUD: Combo, Multiplier & Streak Badges */}
+      <div className="pointer-events-none absolute top-18 left-0 right-0 z-20 flex flex-col items-center gap-2">
+        <div className="flex items-center gap-2">
+          {/* Multiplier Badge */}
+          <div
+            className={`px-3 py-1 rounded-full text-xs font-black tracking-wider border flex items-center gap-1 backdrop-blur-md ${
+              multiplier >= 4
+                ? 'bg-amber-500/25 text-amber-300 border-amber-400/60 shadow-[0_0_15px_rgba(245,158,11,0.6)] animate-pulse'
+                : multiplier >= 3
+                ? 'bg-purple-500/25 text-purple-300 border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.5)]'
+                : multiplier >= 2
+                ? 'bg-sky-500/25 text-sky-300 border-sky-400/50 shadow-[0_0_10px_rgba(56,189,248,0.5)]'
+                : 'bg-slate-900/60 text-slate-400 border-slate-700/50'
+            }`}
+          >
+            <Zap size={12} />
+            <span>{multiplier}X MULTIPLIER</span>
+          </div>
+
+          {/* Combo Badge */}
+          {combo > 1 && (
+            <div className="px-3 py-1 rounded-full text-xs font-black tracking-wider bg-amber-500/20 text-amber-400 border border-amber-400/50 shadow-[0_0_15px_rgba(245,158,11,0.5)] flex items-center gap-1 backdrop-blur-md animate-bounce">
+              <Flame size={13} className="text-amber-400 fill-amber-400" />
+              <span>COMBO x{combo}</span>
+            </div>
+          )}
+
+          {/* Max Combo Badge */}
+          {maxCombo > 1 && (
+            <div className="hidden sm:flex px-3 py-1 rounded-full text-xs font-black tracking-wider bg-purple-500/20 text-purple-300 border border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.5)] items-center gap-1 backdrop-blur-md">
+              <span>MAX x{maxCombo}</span>
+            </div>
+          )}
+
+          {/* Streak Counter */}
+          {streak >= 5 && (
+            <div className="hidden sm:flex px-3 py-1 rounded-full text-xs font-black tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 shadow-[0_0_12px_rgba(16,185,129,0.5)] items-center gap-1 backdrop-blur-md">
+              <span>STREAK {streak}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Floating Animated Hit Feedback Banner */}
+      {hitFeedback && (
         <div
-          style={{
-            position: 'absolute',
-            top: '64px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 20,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '4px 14px',
-            borderRadius: '20px',
-            background: 'rgba(245, 158, 11, 0.2)',
-            border: '1px solid rgba(245, 158, 11, 0.5)',
-            color: '#f59e0b',
-            fontSize: '13px',
-            fontWeight: 900
-          }}
+          key={hitFeedback.timestamp}
+          className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 transition-all duration-300 animate-bounce"
         >
-          <Flame size={14} />
-          <span>COMBO x{combo}</span>
+          <div
+            className="px-6 py-2 rounded-2xl font-black text-2xl tracking-wider shadow-2xl backdrop-blur-md border text-center"
+            style={{
+              color: hitFeedback.color,
+              borderColor: hitFeedback.color,
+              backgroundColor: 'rgba(6, 8, 19, 0.85)',
+              boxShadow: `0 0 25px ${hitFeedback.color}`
+            }}
+          >
+            {hitFeedback.text}
+          </div>
         </div>
       )}
 
-      {/* Level 3 Voice Prompt */}
+      {/* Level 2: Translation Gate HUD Prompt Banner */}
+      {level === 2 && upcomingTile && (
+        <div className="pointer-events-none absolute top-28 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1">
+          <div className="px-5 py-1.5 rounded-2xl bg-[#090e24]/90 border border-sky-400/50 shadow-[0_0_15px_rgba(56,189,248,0.3)] backdrop-blur-md text-center">
+            <div className="text-[10px] text-sky-400 font-bold uppercase tracking-wider">
+              Tarjima dyal had l-kalima:
+            </div>
+            <div className="text-lg font-black text-white tracking-wide">
+              {upcomingTile.germanText}
+            </div>
+            {upcomingTile.phonetic && (
+              <div className="text-[11px] text-sky-300/80 font-mono">
+                [{upcomingTile.phonetic}]
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Level 3: Voice Arena Microphone Banner */}
       {level === 3 && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '96px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 20,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '4px'
-          }}
-        >
-          <div
-            style={{
-              background: 'rgba(15, 23, 42, 0.9)',
-              border: '1px solid rgba(56, 189, 248, 0.4)',
-              borderRadius: '24px',
-              padding: '6px 18px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              color: '#93c5fd',
-              fontSize: '12px'
-            }}
-          >
-            <Mic size={15} color="#38bdf8" />
-            <span>
-              Qra b sawt 3ali: <strong>{currentPromptWord || '...'}</strong>
-            </span>
+        <div className="pointer-events-none absolute top-28 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
+          <div className="bg-slate-950/90 border border-sky-500/40 rounded-2xl px-5 py-2 flex items-center gap-3 text-sky-200 text-xs shadow-[0_0_20px_rgba(56,189,248,0.3)] backdrop-blur-md">
+            <div className="w-7 h-7 rounded-full bg-sky-500/20 border border-sky-400 flex items-center justify-center animate-pulse">
+              <Mic size={14} className="text-sky-400" />
+            </div>
+            <div>
+              <div className="text-[10px] text-slate-400 font-medium">
+                Qra b sawt 3ali f l-micro:
+              </div>
+              <div className="text-sm font-black text-white">
+                {currentPromptWord || 'Ist3edd l-kalima...'}
+              </div>
+            </div>
             {liveTranscript && (
-              <span style={{ color: '#facc15', fontStyle: 'italic' }}>({liveTranscript})</span>
+              <div className="text-xs text-amber-300 font-semibold italic bg-amber-500/10 px-2 py-0.5 rounded border border-amber-400/30">
+                ("${liveTranscript}")
+              </div>
             )}
           </div>
 
-          {voiceRaterRef.current && !voiceRaterRef.current.isAvailable() && (
-            <div
-              style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                border: '1px solid rgba(239, 68, 68, 0.5)',
-                color: '#fca5a5',
-                fontSize: '11px',
-                padding: '3px 12px',
-                borderRadius: '12px',
-                fontWeight: 700
-              }}
-            >
-              ⚠️ Safari/Firefox ma fihomch Web Speech API. Bdel l Google Chrome bash tkhdem l-micro!
+          {!isSpeechAvailable && (
+            <div className="bg-red-500/20 border border-red-500/50 text-red-300 text-[11px] px-3 py-1 rounded-full font-bold shadow-md">
+              ⚠️ Web Speech API khassa Google Chrome bash tkhdem l-microfon mzyan!
             </div>
           )}
         </div>
       )}
 
-      {/* Main 3D Canvas */}
-      <canvas
-        ref={canvasRef}
-        width={window.innerWidth}
-        height={window.innerHeight}
-        style={{
-          flex: 1,
-          width: '100%',
-          height: '100%',
-          display: 'block'
-        }}
-      />
-
-      {/* Two-Thumb Mobile Touch Pads */}
-      {level === 2 && gameState === 'playing' && (
-        <>
-          <div
+      {/* Mobile & Touch Controls Overlay */}
+      {gameState === 'playing' && (
+        <div className="absolute bottom-5 left-0 right-0 z-30 px-4 sm:px-8 flex items-center justify-between pointer-events-none">
+          {/* Lane 0 Button */}
+          <button
             onTouchStart={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              chooseLane(0);
+              handleMobileLane(0);
             }}
             onClick={(e) => {
               e.stopPropagation();
-              chooseLane(0);
+              handleMobileLane(0);
             }}
-            style={{
-              position: 'absolute',
-              bottom: '18px',
-              left: '22px',
-              zIndex: 30,
-              padding: '12px 24px',
-              borderRadius: '14px',
-              background:
-                selectedLane === 0
-                  ? 'linear-gradient(135deg, rgba(56,189,248,0.5), rgba(14,165,233,0.3))'
-                  : 'rgba(15, 23, 42, 0.85)',
-              border: selectedLane === 0 ? '2px solid #38bdf8' : '1px solid rgba(56,189,248,0.3)',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: selectedLane === 0 ? '0 0 20px rgba(56,189,248,0.4)' : 'none',
-              transition: 'all 0.1s ease',
-              touchAction: 'manipulation'
-            }}
+            className={`pointer-events-auto px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer shadow-xl active:scale-95 border backdrop-blur-md ${
+              selectedLane === 0
+                ? 'bg-gradient-to-r from-sky-500/60 to-blue-600/40 border-sky-400 text-white shadow-[0_0_20px_rgba(56,189,248,0.5)] scale-105'
+                : 'bg-slate-900/80 hover:bg-slate-800/80 border-sky-500/30 text-slate-300'
+            }`}
           >
-            ← KHIYAR 1
-          </div>
+            ← {level === 2 ? 'KHIYAR 1' : 'LANE 1'}
+          </button>
 
-          <div
+          {/* Central Strike Button */}
+          <button
             onTouchStart={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              chooseLane(1);
+              handleMobileStrike();
             }}
             onClick={(e) => {
               e.stopPropagation();
-              chooseLane(1);
+              handleMobileStrike();
             }}
-            style={{
-              position: 'absolute',
-              bottom: '18px',
-              right: '22px',
-              zIndex: 30,
-              padding: '12px 24px',
-              borderRadius: '14px',
-              background:
-                selectedLane === 1
-                  ? 'linear-gradient(135deg, rgba(245,158,11,0.5), rgba(217,119,6,0.3))'
-                  : 'rgba(15, 23, 42, 0.85)',
-              border: selectedLane === 1 ? '2px solid #f59e0b' : '1px solid rgba(245,158,11,0.3)',
-              color: '#ffffff',
-              fontSize: '13px',
-              fontWeight: 900,
-              cursor: 'pointer',
-              boxShadow: selectedLane === 1 ? '0 0 20px rgba(245,158,11,0.4)' : 'none',
-              transition: 'all 0.1s ease',
-              touchAction: 'manipulation'
-            }}
+            className="pointer-events-auto px-6 sm:px-8 py-3 rounded-2xl font-black text-xs sm:text-sm bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 border border-sky-400/50 text-white shadow-[0_0_25px_rgba(56,189,248,0.5)] active:scale-95 transition-all cursor-pointer flex items-center gap-2"
           >
-            KHIYAR 2 →
-          </div>
-        </>
+            <Zap size={14} className="text-sky-300" />
+            <span>STRIKE [SPACE]</span>
+          </button>
+
+          {/* Lane 1 Button */}
+          <button
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleMobileLane(1);
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleMobileLane(1);
+            }}
+            className={`pointer-events-auto px-5 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all cursor-pointer shadow-xl active:scale-95 border backdrop-blur-md ${
+              selectedLane === 1
+                ? 'bg-gradient-to-r from-amber-500/60 to-orange-600/40 border-amber-400 text-white shadow-[0_0_20px_rgba(245,158,11,0.5)] scale-105'
+                : 'bg-slate-900/80 hover:bg-slate-800/80 border-amber-500/30 text-slate-300'
+            }`}
+          >
+            {level === 2 ? 'KHIYAR 2' : 'LANE 2'} →
+          </button>
+        </div>
       )}
 
-      {/* End Game Modal */}
+      {/* End Game / Level Completed Summary Modal */}
       {gameState === 'ended' && endResult && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 50,
-            background: 'rgba(6, 8, 19, 0.95)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '440px',
-              background: 'linear-gradient(135deg, #0b1124, #121832)',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
-              borderRadius: '24px',
-              padding: '24px',
-              textAlign: 'center',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.8)'
-            }}
-          >
-            <div
-              style={{
-                width: '54px',
-                height: '54px',
-                margin: '0 auto 12px',
-                borderRadius: '50%',
-                background:
-                  endResult.accuracy >= 100
-                    ? 'rgba(234, 179, 8, 0.2)'
-                    : 'rgba(56, 189, 248, 0.2)',
-                border:
-                  endResult.accuracy >= 100 ? '2px solid #facc15' : '2px solid #38bdf8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: endResult.accuracy >= 100 ? '#facc15' : '#38bdf8'
-              }}
-            >
-              {endResult.becameMastered ? <Trophy size={26} /> : <Award size={26} />}
+        <div className="fixed inset-0 z-50 bg-[#02040a]/90 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-gradient-to-b from-[#0b132b] to-[#070b19] border border-sky-500/40 rounded-3xl p-6 text-center shadow-[0_25px_60px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in duration-300">
+            {/* Header Icon & Stars */}
+            <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-tr from-sky-500/20 to-amber-500/20 border-2 border-sky-400 flex items-center justify-center text-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.4)]">
+              {endResult.becameMastered ? (
+                <Trophy size={30} className="text-amber-400 fill-amber-400" />
+              ) : (
+                <Award size={30} className="text-sky-400" />
+              )}
             </div>
 
-            <h2 style={{ fontSize: '19px', fontWeight: 900, color: '#ffffff', marginBottom: '4px' }}>
-              {endResult.accuracy >= 100 ? 'FLAWLESS RUN! 100%' : 'GOOD EFFORT!'}
+            <div className="flex items-center justify-center gap-1.5 mb-2">
+              {[1, 2, 3].map((starIndex) => (
+                <Star
+                  key={starIndex}
+                  size={20}
+                  className={`${
+                    starIndex <= starCount
+                      ? 'text-amber-400 fill-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]'
+                      : 'text-slate-600'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <h2 className="text-xl sm:text-2xl font-black text-white mb-1 tracking-wide">
+              {endResult.accuracy >= 100
+                ? 'FLAWLESS RUN! 100%'
+                : endResult.accuracy >= 75
+                ? 'EXCELLENT SCORE!'
+                : 'GOOD EFFORT!'}
             </h2>
-            <p style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '16px' }}>
-              #{song.number} {song.title} · {level === 2 ? 'Niveau 2' : 'Niveau 3'}
+            <p className="text-xs text-slate-400 mb-5">
+              #{song.number} {song.title} · {level === 1 ? 'Niveau 1' : level === 2 ? 'Niveau 2' : 'Niveau 3'}
             </p>
 
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-              <div
-                style={{
-                  flex: 1,
-                  background: 'rgba(255,255,255,0.04)',
-                  borderRadius: '12px',
-                  padding: '10px 6px',
-                  border: '1px solid rgba(255,255,255,0.08)'
-                }}
-              >
-                <div style={{ fontSize: '10px', color: '#94a3b8' }}>Score</div>
-                <div style={{ fontSize: '17px', fontWeight: 900, color: '#38bdf8' }}>
-                  {endResult.score}
+            {/* Performance Stats Grid */}
+            <div className="grid grid-cols-3 gap-2 mb-5">
+              <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
+                <div className="text-[10px] text-slate-400 font-bold uppercase">Score</div>
+                <div className="text-lg font-black text-sky-400 drop-shadow">
+                  {endResult.score.toLocaleString()}
                 </div>
               </div>
 
-              <div
-                style={{
-                  flex: 1,
-                  background: 'rgba(255,255,255,0.04)',
-                  borderRadius: '12px',
-                  padding: '10px 6px',
-                  border: '1px solid rgba(255,255,255,0.08)'
-                }}
-              >
-                <div style={{ fontSize: '10px', color: '#94a3b8' }}>Accuracy</div>
+              <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
+                <div className="text-[10px] text-slate-400 font-bold uppercase">Accuracy</div>
                 <div
-                  style={{
-                    fontSize: '17px',
-                    fontWeight: 900,
-                    color: endResult.accuracy >= 100 ? '#4ade80' : '#facc15'
-                  }}
+                  className={`text-lg font-black drop-shadow ${
+                    endResult.accuracy >= 100
+                      ? 'text-emerald-400'
+                      : endResult.accuracy >= 75
+                      ? 'text-amber-400'
+                      : 'text-rose-400'
+                  }`}
                 >
                   {endResult.accuracy}%
                 </div>
               </div>
 
-              <div
-                style={{
-                  flex: 1,
-                  background: 'rgba(255,255,255,0.04)',
-                  borderRadius: '12px',
-                  padding: '10px 6px',
-                  border: '1px solid rgba(255,255,255,0.08)'
-                }}
-              >
-                <div style={{ fontSize: '10px', color: '#94a3b8' }}>Max Combo</div>
-                <div style={{ fontSize: '17px', fontWeight: 900, color: '#f59e0b' }}>
-                  x{maxCombo}
+              <div className="bg-white/5 rounded-2xl p-3 border border-white/10">
+                <div className="text-[10px] text-slate-400 font-bold uppercase">Max Combo</div>
+                <div className="text-lg font-black text-amber-400 drop-shadow">
+                  x{endResult.maxCombo}
                 </div>
               </div>
             </div>
 
-            <div
-              style={{
-                background: 'rgba(15, 23, 42, 0.7)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '14px',
-                padding: '12px',
-                marginBottom: '18px',
-                fontSize: '12px'
-              }}
-            >
+            {/* Mastery & Progression Badges */}
+            <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 mb-6 text-xs text-left">
               {level === 2 && (
                 <div>
-                  <div style={{ color: '#ffffff', fontWeight: 800, marginBottom: '4px' }}>
-                    Flawless 100% Streak:{' '}
-                    <span style={{ color: '#facc15' }}>{endResult.perfectStreak} / 10</span>
+                  <div className="text-white font-bold mb-1 flex items-center justify-between">
+                    <span>Flawless 100% Streak:</span>
+                    <span className="text-amber-400 font-black">{endResult.perfectStreak} / 10</span>
                   </div>
                   {endResult.unlockedNext ? (
-                    <div style={{ color: '#38bdf8', fontWeight: 800 }}>
+                    <div className="text-sky-400 font-black mt-1">
                       🎉 Félicitations! Jbti 100% 10 lmrat! Niveau 3 (Voice Arena) t7ell!
                     </div>
                   ) : (
-                    <div style={{ color: '#94a3b8' }}>
+                    <div className="text-slate-400 text-[11px]">
                       Khassek tjib 100% 10 d l-merrat bash it7ell lik Niveau 3 d l-micro!
                     </div>
                   )}
@@ -1087,72 +646,46 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
 
               {level === 3 && (
                 <div>
-                  <div style={{ color: '#ffffff', fontWeight: 800, marginBottom: '4px' }}>
-                    Voice Mastery Streak:{' '}
-                    <span style={{ color: '#38bdf8' }}>{endResult.perfectStreak} / 10</span>
+                  <div className="text-white font-bold mb-1 flex items-center justify-between">
+                    <span>Voice Mastery Streak:</span>
+                    <span className="text-sky-400 font-black">{endResult.perfectStreak} / 10</span>
                   </div>
                   {endResult.becameMastered ? (
-                    <div style={{ color: '#facc15', fontWeight: 900 }}>
+                    <div className="text-amber-400 font-black mt-1">
                       👑 100% MASTERED! Khditi l-Couronne d l-Mastery d had l-ghoniya!
                     </div>
                   ) : (
-                    <div style={{ color: '#94a3b8' }}>
-                      Bqa lik {10 - endResult.perfectStreak} d l-merrat b 100% bash t-khtar l-Couronne!
+                    <div className="text-slate-400 text-[11px]">
+                      Bqa lik {Math.max(0, 10 - endResult.perfectStreak)} d l-merrat b 100% bash t-khtar l-Couronne!
                     </div>
                   )}
                 </div>
               )}
+
+              {level === 1 && (
+                <div className="text-slate-300 text-[11px]">
+                  {endResult.unlockedNext
+                    ? '🎉 Bravo! Niveau 2 (3D Darija Gates) t7ell!'
+                    : 'Niveau 1 mkamal! Khdam 3la Niveau 2 bash tzid f l-maharat!'}
+                </div>
+              )}
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            {/* Modal Action Buttons */}
+            <div className="flex items-center gap-3">
               <button
-                onClick={() => {
-                  setGameState('playing');
-                  setScore(0);
-                  setCombo(0);
-                  setCurrentAccuracy(100);
-                  activeTilesRef.current.forEach((t) => {
-                    t.resolved = false;
-                    t.userSelectedLane = null;
-                  });
-                  startTimeRef.current = performance.now() / 1000;
-                  audioEngineRef.current?.startSongRhythm(song.bpm, song.instrument);
-                }}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '12px',
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  cursor: 'pointer'
-                }}
+                onClick={handleRestart}
+                className="flex-1 py-3 px-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs sm:text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-95 shadow-lg"
               >
                 <RotateCcw size={15} />
-                <span>3awed</span>
+                <span>3awed (Replay)</span>
               </button>
 
               <button
                 onClick={onExit}
-                style={{
-                  flex: 1,
-                  padding: '12px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #0284c7, #2563eb)',
-                  border: 'none',
-                  color: '#ffffff',
-                  fontSize: '13px',
-                  fontWeight: 800,
-                  cursor: 'pointer'
-                }}
+                className="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white text-xs sm:text-sm font-black cursor-pointer transition-all active:scale-95 shadow-[0_0_20px_rgba(56,189,248,0.5)] border border-sky-400/50"
               >
-                Kammel
+                Kammel (Continue)
               </button>
             </div>
           </div>
@@ -1161,3 +694,5 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
     </div>
   );
 };
+
+export default Beat3DHighway;

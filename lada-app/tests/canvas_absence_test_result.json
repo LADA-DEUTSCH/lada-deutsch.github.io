@@ -1,0 +1,9 @@
+{
+  "beat3dViolations": 0,
+  "webglViolations": 0,
+  "sceneViolations": 0,
+  "usesR3FCanvas": true,
+  "usesR3FImport": true,
+  "delegatesToHighwayScene": true,
+  "passed": true
+}
