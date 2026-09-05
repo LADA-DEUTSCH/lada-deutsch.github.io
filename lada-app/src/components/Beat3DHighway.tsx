@@ -160,10 +160,23 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
     screenShakeRef.current = 0;
     cameraTiltRef.current = 0;
 
+    // Dynamic Canvas Resize on fullscreen, orientation change & bar toggles
+    const handleResize = () => {
+      const canvas = canvasRef.current;
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
       audioEngineRef.current?.dispose();
       voiceRaterRef.current?.stopListening();
     };
@@ -805,23 +818,48 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 20,
-            background: 'rgba(15, 23, 42, 0.9)',
-            border: '1px solid rgba(56, 189, 248, 0.4)',
-            borderRadius: '24px',
-            padding: '6px 18px',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            gap: '8px',
-            color: '#93c5fd',
-            fontSize: '12px'
+            gap: '4px'
           }}
         >
-          <Mic size={15} color="#38bdf8" />
-          <span>
-            Qra b sawt 3ali: <strong>{currentPromptWord || '...'}</strong>
-          </span>
-          {liveTranscript && (
-            <span style={{ color: '#facc15', fontStyle: 'italic' }}>({liveTranscript})</span>
+          <div
+            style={{
+              background: 'rgba(15, 23, 42, 0.9)',
+              border: '1px solid rgba(56, 189, 248, 0.4)',
+              borderRadius: '24px',
+              padding: '6px 18px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              color: '#93c5fd',
+              fontSize: '12px'
+            }}
+          >
+            <Mic size={15} color="#38bdf8" />
+            <span>
+              Qra b sawt 3ali: <strong>{currentPromptWord || '...'}</strong>
+            </span>
+            {liveTranscript && (
+              <span style={{ color: '#facc15', fontStyle: 'italic' }}>({liveTranscript})</span>
+            )}
+          </div>
+
+          {voiceRaterRef.current && !voiceRaterRef.current.isAvailable() && (
+            <div
+              style={{
+                background: 'rgba(239, 68, 68, 0.2)',
+                border: '1px solid rgba(239, 68, 68, 0.5)',
+                color: '#fca5a5',
+                fontSize: '11px',
+                padding: '3px 12px',
+                borderRadius: '12px',
+                fontWeight: 700
+              }}
+            >
+              ⚠️ Safari/Firefox ma fihomch Web Speech API. Bdel l Google Chrome bash tkhdem l-micro!
+            </div>
           )}
         </div>
       )}
@@ -843,6 +881,11 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
       {level === 2 && gameState === 'playing' && (
         <>
           <div
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              chooseLane(0);
+            }}
             onClick={(e) => {
               e.stopPropagation();
               chooseLane(0);
@@ -864,13 +907,19 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
               fontWeight: 900,
               cursor: 'pointer',
               boxShadow: selectedLane === 0 ? '0 0 20px rgba(56,189,248,0.4)' : 'none',
-              transition: 'all 0.1s ease'
+              transition: 'all 0.1s ease',
+              touchAction: 'manipulation'
             }}
           >
             ← KHIYAR 1
           </div>
 
           <div
+            onTouchStart={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              chooseLane(1);
+            }}
             onClick={(e) => {
               e.stopPropagation();
               chooseLane(1);
@@ -892,7 +941,8 @@ export const Beat3DHighway: React.FC<Beat3DHighwayProps> = ({
               fontWeight: 900,
               cursor: 'pointer',
               boxShadow: selectedLane === 1 ? '0 0 20px rgba(245,158,11,0.4)' : 'none',
-              transition: 'all 0.1s ease'
+              transition: 'all 0.1s ease',
+              touchAction: 'manipulation'
             }}
           >
             KHIYAR 2 →
