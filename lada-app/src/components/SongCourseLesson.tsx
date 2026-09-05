@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   ArrowLeft,
   Volume2,
@@ -25,6 +25,7 @@ import { recordLevelResult } from '../services/gameProgressStorage';
 import { toggleFullscreen, isFullscreen } from '../services/fullscreenUtils';
 import { getMasterProfessorGuidance } from '../services/pedagogyEngine';
 import { askAiProfessor } from '../services/aiProfessorService';
+import { geminiAudioTts, type GeminiVoiceName } from '../services/geminiAudioTts';
 
 interface SongCourseLessonProps {
   song: SongDefinition;
@@ -49,6 +50,11 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [isFullscreenMode, setIsFullscreenMode] = useState(isFullscreen());
 
+  // Gemini Audio & Voice Engine States
+  const [selectedVoice, setSelectedVoice] = useState<GeminiVoiceName>('Puck');
+  const [audioTarget, setAudioTarget] = useState<'word' | 'professor' | null>(null);
+  const [isAudioGenerating, setIsAudioGenerating] = useState(false);
+
   // Auto-Pilot Lecture Mode State
   const [isAutoPilot, setIsAutoPilot] = useState(false);
   const [autoTimerProgress, setAutoTimerProgress] = useState(0);
@@ -63,29 +69,79 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
   const totalLyrics = song.lyrics.length;
   const guidance = getMasterProfessorGuidance(currentLyric);
 
-  // Audio Speech Synthesis
+  // Audio Playback Listener
+  useEffect(() => {
+    geminiAudioTts.setOnPlaybackStateChange((playing) => {
+      setIsPlayingAudio(playing);
+      if (!playing) {
+        setAudioTarget(null);
+      }
+    });
+
+    return () => {
+      geminiAudioTts.stopAudio();
+    };
+  }, []);
+
+  // Preload German Audio for instant response
+  useEffect(() => {
+    if (currentLyric) {
+      geminiAudioTts.preloadAudio(currentLyric.german, selectedVoice);
+    }
+    if (currentIndex + 1 < song.lyrics.length) {
+      geminiAudioTts.preloadAudio(song.lyrics[currentIndex + 1].german, selectedVoice);
+    }
+  }, [currentIndex, currentLyric, selectedVoice, song.lyrics]);
+
+  // Audio Speech Synthesis for German Word (Google Gemini Studio 24kHz)
   const playAudio = useCallback(
-    (text: string, forceSlow?: boolean) => {
-      if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    async (text: string, forceSlow?: boolean): Promise<void> => {
+      setAudioTarget('word');
+      setIsAudioGenerating(true);
+      const rate = (forceSlow !== undefined ? forceSlow : isSlow) ? 0.75 : 1.0;
       try {
-        window.speechSynthesis.cancel();
-        const cleaned = text.replace(/\[.*?\]/g, '').replace(/[\(\)]/g, '').trim();
-        const utt = new SpeechSynthesisUtterance(cleaned);
-        utt.lang = 'de-DE';
-        utt.rate = (forceSlow !== undefined ? forceSlow : isSlow) ? 0.72 : 1.0;
-        utt.pitch = 1.0;
-
-        setIsPlayingAudio(true);
-        utt.onend = () => setIsPlayingAudio(false);
-        utt.onerror = () => setIsPlayingAudio(false);
-
-        window.speechSynthesis.speak(utt);
-      } catch {
-        setIsPlayingAudio(false);
+        await geminiAudioTts.speakText(text, selectedVoice, 'de-DE', rate);
+      } finally {
+        setIsAudioGenerating(false);
       }
     },
-    [isSlow]
+    [isSlow, selectedVoice]
   );
+
+  // Professor Explanation Audio (Moroccan Darija in Arabic Script via Google Gemini API)
+  const speakProfessorExplanation = useCallback(
+    async (tabToSpeak?: ProfessorTab): Promise<void> => {
+      const tab = tabToSpeak || activeTab;
+      let textToSpeak = '';
+      if (tab === 'explanation') {
+        textToSpeak = guidance.explanation;
+      } else if (tab === 'phonetic') {
+        textToSpeak = `سر النطق: ${guidance.phoneticSecret}`;
+      } else if (tab === 'trap') {
+        textToSpeak = `رد البال من هاد الفخ: ${guidance.moroccanTrap}`;
+      } else if (tab === 'dialogue') {
+        textToSpeak = `${guidance.realDialogue.germanA}. ${guidance.realDialogue.germanB}. السياق: ${guidance.realDialogue.darijaContext}`;
+      }
+
+      if (!textToSpeak) return;
+
+      setAudioTarget('professor');
+      setIsAudioGenerating(true);
+      try {
+        await geminiAudioTts.speakText(textToSpeak, selectedVoice, 'ar-SA', 1.0);
+      } finally {
+        setIsAudioGenerating(false);
+      }
+    },
+    [activeTab, guidance, selectedVoice]
+  );
+
+  const stopAllAudio = useCallback(() => {
+    geminiAudioTts.stopAudio();
+    setIsPlayingAudio(false);
+    setAudioTarget(null);
+    setIsAudioGenerating(false);
+  }, []);
 
   // Mark visited
   useEffect(() => {
@@ -93,54 +149,72 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
   }, [currentIndex]);
 
   // =========================================================
-  // AUTO-PILOT LECTURE SYSTEM (الأستاذ هو اللي كيتحكم أوتوماتيك)
+  // AUTO-PILOT LECTURE SYSTEM (الأستاذ هو اللي كيتحكم ويشرح بصوتو)
   // =========================================================
-  const autoPilotRef = useRef<any>(null);
-
   useEffect(() => {
     if (!isAutoPilot || quizStep) {
-      if (autoPilotRef.current) clearInterval(autoPilotRef.current);
       setAutoTimerProgress(0);
       return;
     }
 
-    // Play word audio at start of each word
-    playAudio(currentLyric.german);
+    let isCancelled = false;
+    let stepTimer: any = null;
 
-    let seconds = 0;
-    const TOTAL_WORD_DURATION = 16; // 16 seconds per word across the 4 tabs
+    const runAutoPilotWordSequence = async () => {
+      // Step 1: Pronounce the German Word clearly
+      if (isCancelled) return;
+      setActiveTab('explanation');
+      setAutoTimerProgress(10);
+      await playAudio(currentLyric.german);
 
-    autoPilotRef.current = setInterval(() => {
-      seconds += 0.25;
-      const progress = Math.min(100, Math.round((seconds / TOTAL_WORD_DURATION) * 100));
-      setAutoTimerProgress(progress);
+      if (isCancelled) return;
+      await new Promise((r) => { stepTimer = setTimeout(r, 600); });
+      if (isCancelled) return;
 
-      // Auto-step through the tabs
-      if (seconds >= 0 && seconds < 4.5) {
-        setActiveTab('explanation');
-      } else if (seconds >= 4.5 && seconds < 8.5) {
-        setActiveTab('phonetic');
-      } else if (seconds >= 8.5 && seconds < 12.5) {
-        setActiveTab('trap');
-      } else if (seconds >= 12.5 && seconds < 16) {
-        setActiveTab('dialogue');
-      } else if (seconds >= TOTAL_WORD_DURATION) {
-        // Move to next word or finish
-        if (currentIndex < totalLyrics - 1) {
-          setCurrentIndex((prev) => prev + 1);
-          seconds = 0;
-        } else {
-          // Finished all words, start quiz!
-          setIsAutoPilot(false);
-          setQuizStep(true);
-        }
+      // Step 2: Professor explains in Moroccan Darija
+      setAutoTimerProgress(35);
+      await speakProfessorExplanation('explanation');
+
+      if (isCancelled) return;
+      await new Promise((r) => { stepTimer = setTimeout(r, 700); });
+      if (isCancelled) return;
+
+      // Step 3: Switch to Phonetic tab and explain mouth position
+      setActiveTab('phonetic');
+      setAutoTimerProgress(65);
+      await speakProfessorExplanation('phonetic');
+
+      if (isCancelled) return;
+      await new Promise((r) => { stepTimer = setTimeout(r, 700); });
+      if (isCancelled) return;
+
+      // Step 4: Switch to Moroccan Trap tab
+      setActiveTab('trap');
+      setAutoTimerProgress(85);
+      await speakProfessorExplanation('trap');
+
+      if (isCancelled) return;
+      setAutoTimerProgress(100);
+      await new Promise((r) => { stepTimer = setTimeout(r, 1200); });
+      if (isCancelled) return;
+
+      // Move to next word or trigger quiz
+      if (currentIndex < totalLyrics - 1) {
+        setCurrentIndex((prev) => prev + 1);
+      } else {
+        setIsAutoPilot(false);
+        setQuizStep(true);
       }
-    }, 250);
+    };
+
+    runAutoPilotWordSequence();
 
     return () => {
-      if (autoPilotRef.current) clearInterval(autoPilotRef.current);
+      isCancelled = true;
+      if (stepTimer) clearTimeout(stepTimer);
+      geminiAudioTts.stopAudio();
     };
-  }, [isAutoPilot, currentIndex, currentLyric, totalLyrics, playAudio, quizStep]);
+  }, [isAutoPilot, currentIndex, quizStep, currentLyric.german, playAudio, speakProfessorExplanation, totalLyrics]);
 
   // =========================================================
   // GEMINI AI PROFESSOR INTEGRATION (سول الأستاذ لادا بـ AI)
@@ -375,8 +449,44 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
           </div>
         </div>
 
-        {/* Right: Ask AI Assistant, Audio Speed & Fullscreen */}
+        {/* Right: Voice Selector, Ask AI Assistant, Audio Speed & Fullscreen */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Gemini Voice Selector Pill */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              background: 'rgba(255, 255, 255, 0.06)',
+              border: '1px solid rgba(0, 240, 255, 0.25)'
+            }}
+          >
+            <Volume2 size={13} color="#00f0ff" />
+            <select
+              value={selectedVoice}
+              onChange={(e) => setSelectedVoice(e.target.value as GeminiVoiceName)}
+              title="صوت الأستاذ (Google Gemini Audio)"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#00f0ff',
+                fontSize: '11px',
+                fontWeight: 900,
+                cursor: 'pointer',
+                outline: 'none',
+                fontFamily: 'inherit'
+              }}
+            >
+              <option value="Puck" style={{ background: '#091024', color: '#fff' }}>Puck (شاب نشيط ⚡)</option>
+              <option value="Fenrir" style={{ background: '#091024', color: '#fff' }}>Fenrir (هادئ وواضح 🎯)</option>
+              <option value="Aoede" style={{ background: '#091024', color: '#fff' }}>Aoede (أستاذة ودودة 🌸)</option>
+              <option value="Charon" style={{ background: '#091024', color: '#fff' }}>Charon (صوت عميق 🎩)</option>
+              <option value="Kore" style={{ background: '#091024', color: '#fff' }}>Kore (صوت لطيف 🌟)</option>
+            </select>
+          </div>
+
           {/* Ask AI Professor Button (Gemini API) */}
           <button
             onClick={() => {
@@ -645,12 +755,19 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
 
                 {/* Big Glowing Audio Button */}
                 <button
-                  onClick={() => playAudio(currentLyric.german)}
+                  onClick={() => {
+                    if (audioTarget === 'word' && isPlayingAudio) {
+                      stopAllAudio();
+                    } else {
+                      playAudio(currentLyric.german);
+                    }
+                  }}
+                  title="استمع للنطق الألماني الحقيقي بـ Gemini"
                   style={{
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: isPlayingAudio
+                    background: audioTarget === 'word' && isPlayingAudio
                       ? 'linear-gradient(135deg, #00f0ff, #0284c7)'
                       : 'linear-gradient(135deg, #0284c7, #2563eb)',
                     border: 'none',
@@ -659,10 +776,10 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                     alignItems: 'center',
                     justifyContent: 'center',
                     cursor: 'pointer',
-                    boxShadow: isPlayingAudio
+                    boxShadow: audioTarget === 'word' && isPlayingAudio
                       ? '0 0 30px rgba(0, 240, 255, 0.7)'
                       : '0 10px 25px rgba(2, 132, 199, 0.4)',
-                    transform: isPlayingAudio ? 'scale(1.08)' : 'scale(1)',
+                    transform: audioTarget === 'word' && isPlayingAudio ? 'scale(1.08)' : 'scale(1)',
                     transition: 'all 0.15s ease'
                   }}
                 >
@@ -689,8 +806,37 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                 </button>
               </div>
 
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
-                انقر باش تسمع النطق • أو اضغط <strong>Spacebar</strong> ⌨️
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                  انقر باش تسمع النطق • أو اضغط <strong>Spacebar</strong> ⌨️
+                </div>
+                <div
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 900,
+                    color: audioTarget === 'word' && isPlayingAudio ? '#00f0ff' : '#64748b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      borderRadius: '50%',
+                      background: audioTarget === 'word' && isPlayingAudio ? '#00f0ff' : '#475569',
+                      boxShadow: audioTarget === 'word' && isPlayingAudio ? '0 0 6px #00f0ff' : 'none'
+                    }}
+                  />
+                  <span>
+                    {isAudioGenerating && audioTarget === 'word'
+                      ? '⏳ جاري استحضار نطق Gemini...'
+                      : audioTarget === 'word' && isPlayingAudio
+                      ? '🟢 استوديو صوت Google Gemini الطبيعي (24kHz)'
+                      : 'صوت طبيعي 24kHz Google Gemini'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -757,34 +903,75 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                     </div>
                   </div>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      fontSize: '11px',
-                      fontWeight: 800,
-                      color: isAutoPilot ? '#10b981' : '#38bdf8',
-                      background: isAutoPilot
-                        ? 'rgba(16, 185, 129, 0.12)'
-                        : 'rgba(56, 189, 248, 0.12)',
-                      border: isAutoPilot
-                        ? '1px solid rgba(16, 185, 129, 0.3)'
-                        : '1px solid rgba(56, 189, 248, 0.3)',
-                      padding: '3px 12px',
-                      borderRadius: '12px'
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: '6px',
-                        height: '6px',
-                        borderRadius: '50%',
-                        background: isAutoPilot ? '#10b981' : '#38bdf8',
-                        boxShadow: isAutoPilot ? '0 0 6px #10b981' : '0 0 6px #38bdf8'
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Speak Professor Explanation Button */}
+                    <button
+                      onClick={() => {
+                        if (audioTarget === 'professor' && isPlayingAudio) {
+                          stopAllAudio();
+                        } else {
+                          speakProfessorExplanation(activeTab);
+                        }
                       }}
-                    />
-                    {isAutoPilot ? 'شرح الأستاذ التلقائي شغال' : 'تصفح يدوي'}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '5px 14px',
+                        borderRadius: '16px',
+                        background: audioTarget === 'professor' && isPlayingAudio
+                          ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                          : 'linear-gradient(135deg, #facc15, #f59e0b)',
+                        border: 'none',
+                        color: '#000000',
+                        fontSize: '12px',
+                        fontWeight: 900,
+                        cursor: 'pointer',
+                        boxShadow: audioTarget === 'professor' && isPlayingAudio
+                          ? '0 0 16px rgba(239, 68, 68, 0.6)'
+                          : '0 0 14px rgba(250, 204, 21, 0.4)',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <Volume2 size={15} />
+                      <span>
+                        {audioTarget === 'professor' && isPlayingAudio
+                          ? '⏹️ وقف الشرح'
+                          : isAudioGenerating && audioTarget === 'professor'
+                          ? '⏳ الأستاذ كيوجد الصوت...'
+                          : '🎙️ تكلّم يا أستاذ (صوت Gemini)'}
+                      </span>
+                    </button>
+
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '11px',
+                        fontWeight: 800,
+                        color: isAutoPilot ? '#10b981' : '#38bdf8',
+                        background: isAutoPilot
+                          ? 'rgba(16, 185, 129, 0.12)'
+                          : 'rgba(56, 189, 248, 0.12)',
+                        border: isAutoPilot
+                          ? '1px solid rgba(16, 185, 129, 0.3)'
+                          : '1px solid rgba(56, 189, 248, 0.3)',
+                        padding: '5px 12px',
+                        borderRadius: '16px'
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          background: isAutoPilot ? '#10b981' : '#38bdf8',
+                          boxShadow: isAutoPilot ? '0 0 6px #10b981' : '0 0 6px #38bdf8'
+                        }}
+                      />
+                      {isAutoPilot ? 'المحاضرة التلقائية شغالة' : 'تصفح يدوي'}
+                    </div>
                   </div>
                 </div>
 
@@ -945,6 +1132,42 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                   </button>
                 </div>
 
+                {/* Professor Speaking Status Banner */}
+                {audioTarget === 'professor' && isPlayingAudio && (
+                  <div
+                    style={{
+                      marginBottom: '10px',
+                      padding: '8px 14px',
+                      borderRadius: '12px',
+                      background: 'rgba(250, 204, 21, 0.12)',
+                      border: '1px solid rgba(250, 204, 21, 0.3)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#facc15', fontWeight: 800 }}>
+                      <Volume2 size={16} />
+                      <span>🎙️ الأستاذ لادا كيشرح ليك دابا بالصوت الحقيقي ديال Gemini API...</span>
+                    </div>
+                    <button
+                      onClick={stopAllAudio}
+                      style={{
+                        padding: '3px 10px',
+                        borderRadius: '8px',
+                        background: '#ef4444',
+                        border: 'none',
+                        color: '#ffffff',
+                        fontSize: '11px',
+                        fontWeight: 900,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      توقيف ⏹️
+                    </button>
+                  </div>
+                )}
+
                 {/* Tab Content Box in Arabic Script */}
                 <div
                   style={{
@@ -978,6 +1201,39 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                       >
                         {guidance.explanation}
                       </div>
+                      <div style={{ marginTop: '12px' }}>
+                        <button
+                          onClick={() => {
+                            if (audioTarget === 'professor' && isPlayingAudio && activeTab === 'explanation') {
+                              stopAllAudio();
+                            } else {
+                              speakProfessorExplanation('explanation');
+                            }
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: audioTarget === 'professor' && isPlayingAudio && activeTab === 'explanation'
+                              ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                              : 'rgba(0, 240, 255, 0.15)',
+                            border: '1px solid rgba(0, 240, 255, 0.35)',
+                            color: '#ffffff',
+                            padding: '6px 14px',
+                            borderRadius: '14px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Volume2 size={13} />
+                          <span>
+                            {audioTarget === 'professor' && isPlayingAudio && activeTab === 'explanation'
+                              ? '⏹️ وقف صوت الأستاذ'
+                              : '🎙️ استمع للشرح بصوت الأستاذ (Gemini)'}
+                          </span>
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -1003,6 +1259,39 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                         }}
                       >
                         {guidance.phoneticSecret}
+                      </div>
+                      <div style={{ marginTop: '12px' }}>
+                        <button
+                          onClick={() => {
+                            if (audioTarget === 'professor' && isPlayingAudio && activeTab === 'phonetic') {
+                              stopAllAudio();
+                            } else {
+                              speakProfessorExplanation('phonetic');
+                            }
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: audioTarget === 'professor' && isPlayingAudio && activeTab === 'phonetic'
+                              ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                              : 'rgba(56, 189, 248, 0.15)',
+                            border: '1px solid rgba(56, 189, 248, 0.35)',
+                            color: '#ffffff',
+                            padding: '6px 14px',
+                            borderRadius: '14px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Volume2 size={13} />
+                          <span>
+                            {audioTarget === 'professor' && isPlayingAudio && activeTab === 'phonetic'
+                              ? '⏹️ وقف صوت الأستاذ'
+                              : '🗣️ استمع لموضع اللسان والشفتين بصوت الأستاذ'}
+                          </span>
+                        </button>
                       </div>
                     </div>
                   )}
@@ -1036,6 +1325,39 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                         }}
                       >
                         {guidance.moroccanTrap}
+                      </div>
+                      <div style={{ marginTop: '12px' }}>
+                        <button
+                          onClick={() => {
+                            if (audioTarget === 'professor' && isPlayingAudio && activeTab === 'trap') {
+                              stopAllAudio();
+                            } else {
+                              speakProfessorExplanation('trap');
+                            }
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: audioTarget === 'professor' && isPlayingAudio && activeTab === 'trap'
+                              ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                              : 'rgba(245, 158, 11, 0.2)',
+                            border: '1px solid rgba(245, 158, 11, 0.4)',
+                            color: '#ffffff',
+                            padding: '6px 14px',
+                            borderRadius: '14px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Volume2 size={13} />
+                          <span>
+                            {audioTarget === 'professor' && isPlayingAudio && activeTab === 'trap'
+                              ? '⏹️ وقف صوت الأستاذ'
+                              : '⚠️ استمع لشرح الفخ باش ما تطيحش فيه'}
+                          </span>
+                        </button>
                       </div>
                     </div>
                   )}
@@ -1103,6 +1425,40 @@ export const SongCourseLesson: React.FC<SongCourseLessonProps> = ({
                         }}
                       >
                         📌 السياق: {guidance.realDialogue.darijaContext}
+                      </div>
+
+                      <div style={{ marginTop: '8px' }}>
+                        <button
+                          onClick={() => {
+                            if (audioTarget === 'professor' && isPlayingAudio && activeTab === 'dialogue') {
+                              stopAllAudio();
+                            } else {
+                              speakProfessorExplanation('dialogue');
+                            }
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            background: audioTarget === 'professor' && isPlayingAudio && activeTab === 'dialogue'
+                              ? 'linear-gradient(135deg, #ef4444, #dc2626)'
+                              : 'rgba(167, 139, 250, 0.2)',
+                            border: '1px solid rgba(167, 139, 250, 0.4)',
+                            color: '#ffffff',
+                            padding: '6px 14px',
+                            borderRadius: '14px',
+                            fontSize: '11px',
+                            fontWeight: 800,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <Volume2 size={13} />
+                          <span>
+                            {audioTarget === 'professor' && isPlayingAudio && activeTab === 'dialogue'
+                              ? '⏹️ وقف الحوار'
+                              : '🎬 استمع للحوار الواقعي كيفاش كيهضرو'}
+                          </span>
+                        </button>
                       </div>
                     </div>
                   )}

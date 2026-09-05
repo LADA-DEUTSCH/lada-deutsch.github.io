@@ -1,4 +1,5 @@
 import type { InstrumentType } from '../types';
+import { geminiAudioTts } from './geminiAudioTts';
 
 export class MusicSynthEngine {
   private ctx: AudioContext | null = null;
@@ -8,16 +9,8 @@ export class MusicSynthEngine {
   private instrument: InstrumentType = 'piano';
   private timerId: number | null = null;
   private currentBeat: number = 0;
-  private germanVoice: SpeechSynthesisVoice | null = null;
 
   constructor() {
-    this.initVoice();
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        this.initVoice();
-      };
-    }
-
     // Auto-unlock AudioContext on first user interaction anywhere
     if (typeof window !== 'undefined') {
       const unlock = () => {
@@ -31,23 +24,6 @@ export class MusicSynthEngine {
       window.addEventListener('click', unlock);
       window.addEventListener('touchstart', unlock);
       window.addEventListener('keydown', unlock);
-    }
-  }
-
-  private initVoice() {
-    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    const voices = window.speechSynthesis.getVoices();
-    const deVoice = voices.find(
-      (v) =>
-        v.lang.startsWith('de') &&
-        (v.name.includes('Natural') ||
-          v.name.includes('Google') ||
-          v.name.includes('Hedda') ||
-          v.name.includes('Katja') ||
-          v.name.includes('Stefan'))
-    ) || voices.find((v) => v.lang.startsWith('de'));
-    if (deVoice) {
-      this.germanVoice = deVoice;
     }
   }
 
@@ -308,22 +284,8 @@ export class MusicSynthEngine {
   }
 
   public speakGermanLyric(text: string, isSlow: boolean = false) {
-    if (this.isMuted || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-    try {
-      window.speechSynthesis.cancel();
-      const cleaned = text.replace(/\[.*?\]/g, '').replace(/[\(\)]/g, '').trim();
-      const utt = new SpeechSynthesisUtterance(cleaned);
-      utt.lang = 'de-DE';
-      if (this.germanVoice) {
-        utt.voice = this.germanVoice;
-      }
-      utt.rate = isSlow ? 0.75 : 0.95;
-      utt.pitch = 1.0;
-      utt.volume = 1.0;
-      window.speechSynthesis.speak(utt);
-    } catch (e) {
-      console.warn('Speech synthesis error:', e);
-    }
+    if (this.isMuted) return;
+    geminiAudioTts.speakText(text, 'Puck', 'de-DE', isSlow ? 0.75 : 1.0).catch(() => {});
   }
 
   public dispose() {
